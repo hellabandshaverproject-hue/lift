@@ -225,7 +225,7 @@ canvas{display:block;width:100%}
 
 <div class="header">
   <div class="logo">LIFT</div>
-  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.0</div>
+  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.1</div>
   <div class="header-right">
     <div class="header-streak">🔥 <span class="streak-val" id="streakVal">0</span> wk</div>
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
@@ -254,19 +254,19 @@ canvas{display:block;width:100%}
     <div class="day-selector" id="daySelector"></div>
     <div id="workoutArea"></div>
     <div id="startSessionWrap" style="position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:10px 14px;display:flex;">
-      <button onclick="startSession()" style="width:100%;background:var(--accent);border:none;border-radius:var(--r-sm);color:#0d160d;font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;padding:14px;cursor:pointer;letter-spacing:.5px">▶ Start Session</button>
+      <button onclick="startSession()" style="width:100%;background:var(--accent);border:none;border-radius:var(--r-sm);color:#0d160d;font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;padding:11px;cursor:pointer;letter-spacing:.5px">▶ Start Session</button>
     </div>
     <div id="sessionBar" class="session-bar" style="display:none">
-      <textarea class="note-input" id="sessionNote" placeholder="Session note…" rows="1"></textarea>
-      <button class="finish-btn" onclick="finishSession()">Done ✓</button>
-      <button onclick="cancelSession()" style="background:var(--red-dim);border:1px solid var(--red);border-radius:var(--r-sm);color:var(--red);font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;padding:0 10px;height:40px;cursor:pointer;flex-shrink:0">✕</button>
+      <textarea class="note-input" id="sessionNote" placeholder="Note…" rows="1" style="flex:1;min-width:0;font-size:12px"></textarea>
+      <button class="finish-btn" onclick="finishSession()" style="padding:0 22px;font-size:15px;height:44px;flex-shrink:0">Done ✓</button>
+      <button onclick="cancelSession()" style="background:var(--red-dim);border:1px solid var(--red);border-radius:var(--r-sm);color:var(--red);font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;padding:0 10px;height:44px;cursor:pointer;flex-shrink:0">✕</button>
     </div>
   </div>
 
   <!-- PROGRESS -->
   <div class="page" id="page-progress">
     <div class="section-label">Hall of Fame — Big 3</div>
-    <div class="card" id="recordsCard"></div>
+    <div class="card" id="recordsCard" style="padding:0;overflow:hidden"></div>
     <div class="section-label" style="margin-top:14px">Exercise Progress</div>
     <div class="ex-picker" id="exPicker"></div>
     <div id="chartArea"></div>
@@ -294,7 +294,7 @@ canvas{display:block;width:100%}
   <!-- TOOLS -->
   <div class="page" id="page-tools">
     <div class="section-label">Warm-up Calculator</div>
-    <div class="card">
+    <div class="card" style="border-left:3px solid var(--accent)">
       <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
         <input class="bw-input" type="number" id="warmupW" placeholder="Working weight (kg)" inputmode="decimal" style="flex:1">
         <button class="bw-log-btn" onclick="calcWarmup()">Calc</button>
@@ -302,7 +302,7 @@ canvas{display:block;width:100%}
       <div id="warmupResult"></div>
     </div>
     <div class="section-label" style="margin-top:14px">1RM Calculator</div>
-    <div class="card">
+    <div class="card" style="border-left:3px solid var(--accent)">
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <div style="flex:1">
           <div class="input-label" style="margin-bottom:4px">Weight (kg)</div>
@@ -317,7 +317,7 @@ canvas{display:block;width:100%}
       <div id="ormResult"></div>
     </div>
     <div class="section-label" style="margin-top:14px">Plate Calculator</div>
-    <div class="card">
+    <div class="card" style="border-left:3px solid var(--accent)">
       <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
         <input class="bw-input" type="number" id="plateW" placeholder="Target weight (kg)" inputmode="decimal" style="flex:1">
         <button class="bw-log-btn" onclick="calcPlates()">Calc</button>
@@ -325,7 +325,7 @@ canvas{display:block;width:100%}
       <div id="plateResult"></div>
     </div>
     <div class="section-label" style="margin-top:14px">TDEE Calculator</div>
-    <div class="card">
+    <div class="card" style="border-left:3px solid var(--accent)">
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <div style="flex:1">
           <div class="input-label" style="margin-bottom:4px">Age</div>
@@ -361,7 +361,7 @@ canvas{display:block;width:100%}
       <div id="tdeeResult"></div>
     </div>
     <div class="section-label" style="margin-top:14px">Data</div>
-    <div class="card">
+    <div class="card" style="border-left:3px solid var(--yellow)">
       <div style="display:flex;flex-direction:column;gap:8px">
         <button class="bw-log-btn" onclick="exportData()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:var(--r-sm)">Export JSON 📥</button>
         <label style="width:100%">
@@ -995,14 +995,25 @@ function selExFn(n){selEx=n;renderProgress();}
 
 function renderRecords(){
   const el=document.getElementById('recordsCard');
-  el.innerHTML=BIG3.map(name=>{
-    const h=getHist(name);if(!h.length)return`<div class="record-item"><div><div class="record-name">${name}</div><div class="record-date">No data yet</div></div></div>`;
+  el.innerHTML=BIG3.map((name,idx)=>{
+    const h=getHist(name);
+    if(!h.length)return`<div style="padding:14px 16px;border-bottom:${idx<2?'1px solid var(--border)':'none'}">
+      <div style="font-size:13px;font-weight:600;color:var(--text2)">${name}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">No data yet</div>
+    </div>`;
     const best=h.reduce((a,b)=>a.weight>b.weight?a:b);
     const orm=epley(best.weight,best.plusReps||best.reps||5);
     const repLabel=best.plusReps?`2×5 + ${best.plusReps}`:`× ${best.reps||5}`;
-    return`<div class="record-item">
-      <div><div class="record-name">${name}</div><div class="record-date">${fmtDate(best.date)}</div></div>
-      <div class="record-vals"><div class="record-weight">${best.weight}kg ${repLabel}</div><div class="record-1rm">est. 1RM ${orm}kg</div></div>
+    return`<div style="padding:14px 16px;border-bottom:${idx<2?'1px solid var(--border)':'none'};display:flex;align-items:center;gap:12px">
+      <div style="width:3px;height:48px;background:var(--accent);border-radius:2px;flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.1px">${name}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px">${fmtDate(best.date)}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);letter-spacing:1px;line-height:1">${best.weight}kg ${repLabel}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">est. 1RM <strong style="color:var(--text)">${orm}kg</strong></div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1178,7 +1189,7 @@ function renderHistory(){
     const label=prog?`Day ${s.day} — ${prog.label}`:`Day ${s.day}`;
     const exRows=Object.entries(s.exercises).map(([n,e])=>{
       const isBig3=BIG3.includes(n);
-      const repStr=isBig3?`2×5 + ${e.plusReps||e.reps}`:`${e.reps}`;
+      const repStr=isBig3?`2×5 + ${e.plusReps||e.reps}`:`${e.sets||3}×${e.reps}`;
       return`<div class="hist-ex-row"><span class="hist-ex-name">${n}</span><span class="hist-ex-val">${e.weight}kg · ${repStr}</span></div>`;
     }).join('');
     return`<div class="history-item">
