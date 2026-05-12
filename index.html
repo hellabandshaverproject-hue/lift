@@ -225,7 +225,7 @@ canvas{display:block;width:100%}
 
 <div class="header">
   <div class="logo">LIFT</div>
-  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.4.3</div>
+  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.4.4</div>
   <div class="header-right">
     <div class="header-streak">🔥 <span class="streak-val" id="streakVal">0</span> wk</div>
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
@@ -680,6 +680,7 @@ function renderWorkout(){
           <div class="ex-sets">${ex.sets}${dW?` · ${dW}kg × ${dR}`:''}</div>
           ${flags?`<div class="ex-flags">${flags}</div>`:''}
         </div>
+        <div style="background:var(--text);color:var(--bg);font-size:11px;font-weight:700;padding:4px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;letter-spacing:.3px">${ex.ds||3}×</div>
         ${!sk?`
           <button class="skip-btn" onclick="skipEx('${nm}')">Skip</button>
           <button class="${cur?'log-btn logged':'log-btn'}" onclick="openLog('${nm}','${ex.sets}',${ex.dr||5},${ex.ds||3})">
@@ -695,6 +696,7 @@ function renderWorkout(){
           <div class="ex-sets">${ex.sets}${dW?` · ${dW}kg × ${dR}`:''}</div>
           ${flags?`<div class="ex-flags">${flags}</div>`:''}
         </div>
+        <div style="background:var(--text);color:var(--bg);font-size:11px;font-weight:700;padding:4px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;letter-spacing:.3px">${ex.ds||3}×</div>
       </div>`;
     }
   });
