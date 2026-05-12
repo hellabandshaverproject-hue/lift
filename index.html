@@ -507,7 +507,11 @@ function fmtDate(iso){return new Date(iso).toLocaleDateString('en-GB',{day:'nume
 function fmtTime(s){return`${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;}
 function daysSince(iso){
   if(!iso)return null;
-  const now=new Date();const then=new Date(iso);
+  const now=new Date();
+  const then=new Date(iso);
+  const nowStr=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+  const thenStr=`${then.getFullYear()}-${then.getMonth()}-${then.getDate()}`;
+  if(nowStr===thenStr)return 0;
   const nowDate=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   const thenDate=new Date(then.getFullYear(),then.getMonth(),then.getDate());
   return Math.round((nowDate-thenDate)/(864e5));
@@ -840,8 +844,10 @@ function finishSession(){
 }
 
 function doFinish(){
+  const now=new Date();
+  const localISO=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}T${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
   const dur=S.sessionStart?Math.floor((Date.now()-S.sessionStart)/1000):null;
-  const ses={date:new Date().toISOString(),day:S.activeDay||S.selectedDay,exercises:{...S.cur},note:document.getElementById('sessionNote').value.trim()||null,duration:dur,volume:calcVol(S.cur)};
+  const ses={date:localISO,day:S.activeDay||S.selectedDay,exercises:{...S.cur},note:document.getElementById('sessionNote').value.trim()||null,duration:dur,volume:calcVol(S.cur)};
   S.sessions.push(ses);
   const prev=[...S.sessions].reverse().slice(1).find(s=>s.day===(S.activeDay||S.selectedDay));
   const rating=rateSession(ses,prev);
