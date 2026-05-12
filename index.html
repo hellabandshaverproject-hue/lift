@@ -60,30 +60,30 @@ body{display:flex;flex-direction:column;height:100dvh}
 
 /* WORKOUT */
 .workout-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:3px}
-.workout-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--text)}
-.session-timer{font-size:11px;color:var(--text3);font-variant-numeric:tabular-nums}
+.workout-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--text)}
+.session-timer{font-size:12px;color:var(--accent);font-variant-numeric:tabular-nums;font-weight:600}
 .workout-sub{font-size:11px;color:var(--text3);margin-bottom:12px}
-.ex-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.ex-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .ex-info{flex:1;min-width:0}
-.ex-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ex-sets{font-size:10px;color:var(--text3);margin-top:1px}
-.ex-flags{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
-.flag{font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;letter-spacing:.5px;text-transform:uppercase}
+.ex-name{font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.1px}
+.ex-sets{font-size:11px;color:var(--text3);margin-top:2px;font-weight:400}
+.ex-flags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.flag{font-size:9px;font-weight:700;padding:3px 6px;border-radius:5px;letter-spacing:.5px;text-transform:uppercase}
 .flag-stall{background:var(--red-dim);color:var(--red)}
 .flag-jump{background:var(--green-dim);color:var(--green)}
 .flag-main{background:var(--accent-dim);color:var(--accent)}
 .flag-pr{background:var(--yellow-dim);color:var(--yellow)}
-.log-btn{background:var(--accent);border:none;border-radius:var(--r-sm);color:#0d160d;font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;padding:0 12px;height:40px;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.log-btn{background:var(--accent);border:none;border-radius:var(--r-sm);color:#0d160d;font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;padding:0 14px;height:42px;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
 .log-btn:active{transform:scale(.96)}
 .log-btn.logged{background:var(--bg4);color:var(--accent);border:1px solid var(--accent)}
-.skip-btn{background:none;border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text3);font-size:11px;padding:0 8px;height:40px;cursor:pointer;flex-shrink:0;font-family:'DM Sans',sans-serif}
+.skip-btn{background:none;border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text3);font-size:11px;padding:0 8px;height:42px;cursor:pointer;flex-shrink:0;font-family:'DM Sans',sans-serif}
 .ex-skipped{opacity:.4}
 .ex-skipped .ex-name{text-decoration:line-through}
 .session-bar{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:10px 14px;display:flex;gap:8px;align-items:flex-end}
-.note-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 11px;resize:none;height:40px;outline:none;transition:border-color .15s}
+.note-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 11px;resize:none;height:42px;outline:none;transition:border-color .15s}
 .note-input:focus{border-color:var(--accent)}
 .note-input::placeholder{color:var(--text3)}
-.finish-btn{background:var(--accent);border:none;border-radius:var(--r-sm);color:#0d160d;font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;padding:0 14px;height:40px;cursor:pointer;white-space:nowrap}
+.finish-btn{background:var(--accent);border:none;border-radius:var(--r-sm);color:#0d160d;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;padding:0 18px;height:42px;cursor:pointer;white-space:nowrap;letter-spacing:.3px}
 .finish-btn:active{transform:scale(.96)}
 
 /* PROGRESS */
@@ -93,16 +93,16 @@ body{display:flex;flex-direction:column;height:100dvh}
 .ex-chip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
 .chart-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
 .chart-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;color:var(--text);margin-bottom:2px}
-.chart-meta{font-size:11px;color:var(--text3);margin-bottom:12px;display:flex;gap:12px;flex-wrap:wrap}
-.chart-meta strong{color:var(--accent);font-weight:600}
+.chart-meta{font-size:12px;color:var(--text3);margin-bottom:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.chart-meta strong{color:var(--accent);font-weight:700;font-size:13px}
 canvas{display:block;width:100%}
-.record-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bg3)}
+.record-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--bg3)}
 .record-item:last-child{border-bottom:none}
-.record-name{font-size:13px;font-weight:500;color:var(--text)}
-.record-date{font-size:10px;color:var(--text3);margin-top:1px}
+.record-name{font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.1px}
+.record-date{font-size:10px;color:var(--text3);margin-top:2px}
 .record-vals{text-align:right}
-.record-weight{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent);letter-spacing:1px}
-.record-1rm{font-size:10px;color:var(--text3)}
+.record-weight{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);letter-spacing:1px}
+.record-1rm{font-size:11px;color:var(--text3);margin-top:1px}
 .bw-row{display:flex;gap:8px;margin-bottom:10px;align-items:center}
 .bw-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;padding:10px 12px;outline:none;-moz-appearance:textfield}
 .bw-input::-webkit-inner-spin-button,.bw-input::-webkit-outer-spin-button{-webkit-appearance:none}
@@ -225,7 +225,7 @@ canvas{display:block;width:100%}
 
 <div class="header">
   <div class="logo">LIFT</div>
-  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.4.4</div>
+  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.0</div>
   <div class="header-right">
     <div class="header-streak">🔥 <span class="streak-val" id="streakVal">0</span> wk</div>
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
@@ -280,6 +280,10 @@ canvas{display:block;width:100%}
     </div>
     <div class="section-label" style="margin-top:14px">This Week</div>
     <div id="weeklySummary"></div>
+    <div class="section-label" style="margin-top:14px">Weekly Volume</div>
+    <div class="chart-wrap" id="weeklyVolumeWrap">
+      <canvas id="weeklyVolumeChart" height="160"></canvas>
+    </div>
   </div>
 
   <!-- HISTORY -->
@@ -358,10 +362,10 @@ canvas{display:block;width:100%}
     </div>
     <div class="section-label" style="margin-top:14px">Data</div>
     <div class="card">
-      <div style="display:flex;gap:8px">
-        <button class="bw-log-btn" onclick="exportData()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2)">Export JSON 📥</button>
-        <label style="flex:1">
-          <div class="bw-log-btn" style="width:100%;text-align:center;cursor:pointer;background:var(--bg3);border:1px solid var(--border);color:var(--text2)">Import JSON 📤</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="bw-log-btn" onclick="exportData()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:var(--r-sm)">Export JSON 📥</button>
+        <label style="width:100%">
+          <div class="bw-log-btn" style="width:100%;text-align:center;cursor:pointer;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center">Import JSON 📤</div>
           <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display:none">
         </label>
       </div>
@@ -985,6 +989,7 @@ function renderProgress(){
   renderRecords();
   document.getElementById('exPicker').innerHTML=ALL_EX.map(e=>`<div class="ex-chip ${e===selEx?'active':''}" onclick="selExFn('${e.replace(/'/g,"\\'")}')">${e}</div>`).join('');
   renderChart();renderBWChart();renderWeekly();
+  requestAnimationFrame(()=>renderWeeklyVolumeChart());
 }
 function selExFn(n){selEx=n;renderProgress();}
 
@@ -1072,6 +1077,78 @@ function renderBWChart(){
   if(!S.bws.length){wrap.innerHTML='';return;}
   wrap.innerHTML='<canvas id="bwChart" height="110"></canvas>';
   requestAnimationFrame(()=>drawChart('bwChart',S.bws,d=>d.weight,d=>new Date(d.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})));
+}
+
+function renderWeeklyVolumeChart(){
+  // Get last 8 weeks of volume
+  const weeks=[];
+  const now=new Date();
+  for(let w=7;w>=0;w--){
+    const weekStart=new Date(now);
+    weekStart.setDate(now.getDate()-now.getDay()+1-w*7);
+    weekStart.setHours(0,0,0,0);
+    const weekEnd=new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate()+7);
+    const vol=S.sessions
+      .filter(s=>{const d=new Date(s.date);return d>=weekStart&&d<weekEnd;})
+      .reduce((a,s)=>a+(s.volume||0),0);
+    const label=weekStart.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+    weeks.push({label,vol:Math.round(vol/1000*10)/10});
+  }
+
+  const wrap=document.getElementById('weeklyVolumeWrap');
+  if(!weeks.some(w=>w.vol>0)){
+    wrap.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px">No volume data yet</div>';
+    return;
+  }
+  wrap.innerHTML='<canvas id="weeklyVolumeChart" height="160"></canvas>';
+
+  const canvas=document.getElementById('weeklyVolumeChart');
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth,H=160;
+  canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const pad={top:16,right:8,bottom:30,left:36};
+  const cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
+  const maxV=Math.max(...weeks.map(w=>w.vol),0.1);
+  const barW=cW/weeks.length*0.6;
+  const gap=cW/weeks.length;
+
+  const cs=getComputedStyle(document.documentElement);
+  const cBorder=cs.getPropertyValue('--border').trim();
+  const cText3=cs.getPropertyValue('--text3').trim();
+  const cAccent=cs.getPropertyValue('--accent').trim();
+  const cAccentDim=cs.getPropertyValue('--accent-dim').trim();
+
+  // grid
+  ctx.strokeStyle=cBorder;ctx.lineWidth=1;
+  [0,0.5,1].forEach(t=>{
+    const y=pad.top+cH*(1-t);
+    ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(pad.left+cW,y);ctx.stroke();
+    ctx.fillStyle=cText3;ctx.font='10px DM Sans';ctx.textAlign='right';
+    ctx.fillText((maxV*t).toFixed(1)+'t',pad.left-4,y+3);
+  });
+
+  // bars
+  weeks.forEach((w,i)=>{
+    const x=pad.left+i*gap+gap/2-barW/2;
+    const barH=(w.vol/maxV)*cH;
+    const y=pad.top+cH-barH;
+    ctx.fillStyle=w.vol>0?cAccent:cBorder;
+    ctx.beginPath();
+    ctx.roundRect(x,y,barW,barH,4);
+    ctx.fill();
+
+    // value label on top
+    if(w.vol>0){
+      ctx.fillStyle=cAccent;ctx.font='bold 10px DM Sans';ctx.textAlign='center';
+      ctx.fillText(w.vol+'t',x+barW/2,y-4);
+    }
+
+    // x label
+    ctx.fillStyle=cText3;ctx.font='9px DM Sans';ctx.textAlign='center';
+    ctx.fillText(w.label,x+barW/2,H-4);
+  });
 }
 
 // ── WEEKLY ──
