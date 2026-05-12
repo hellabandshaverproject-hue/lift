@@ -63,7 +63,7 @@ body{display:flex;flex-direction:column;height:100dvh}
 .workout-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--text)}
 .session-timer{font-size:12px;color:var(--accent);font-variant-numeric:tabular-nums;font-weight:600}
 .workout-sub{font-size:11px;color:var(--text3);margin-bottom:12px}
-.ex-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ex-row{display:flex;align-items:center;gap:8px;margin-bottom:0;padding:10px 0;border-bottom:1px solid var(--border)}
 .ex-info{flex:1;min-width:0}
 .ex-name{font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.1px}
 .ex-sets{font-size:11px;color:var(--text3);margin-top:2px;font-weight:400}
@@ -123,8 +123,9 @@ canvas{display:block;width:100%}
 .hist-meta{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .hist-meta-item{font-size:10px;color:var(--text3);background:var(--bg3);padding:3px 8px;border-radius:10px}
 .hist-note{font-size:12px;color:var(--text2);font-style:italic;margin-bottom:8px;padding:6px 10px;background:var(--bg3);border-radius:6px}
-.hist-ex-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--bg3)}
+.hist-ex-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bg3)}
 .hist-ex-row:last-child{border-bottom:none}
+.hist-ex-row.big3{background:var(--accent-dim);margin:0 -14px;padding:6px 14px;border-bottom:1px solid var(--border)}
 .hist-ex-name{font-size:12px;color:var(--text2);flex:1}
 .hist-ex-val{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--text);letter-spacing:1px}
 .hist-actions{display:flex;gap:6px;margin-top:10px}
@@ -225,7 +226,7 @@ canvas{display:block;width:100%}
 
 <div class="header">
   <div class="logo">LIFT</div>
-  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.1</div>
+  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.2</div>
   <div class="header-right">
     <div class="header-streak">🔥 <span class="streak-val" id="streakVal">0</span> wk</div>
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
@@ -294,7 +295,7 @@ canvas{display:block;width:100%}
   <!-- TOOLS -->
   <div class="page" id="page-tools">
     <div class="section-label">Warm-up Calculator</div>
-    <div class="card" style="border-left:3px solid var(--accent)">
+    <div class="card" style="border-left:3px solid var(--accent2)">
       <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
         <input class="bw-input" type="number" id="warmupW" placeholder="Working weight (kg)" inputmode="decimal" style="flex:1">
         <button class="bw-log-btn" onclick="calcWarmup()">Calc</button>
@@ -302,7 +303,7 @@ canvas{display:block;width:100%}
       <div id="warmupResult"></div>
     </div>
     <div class="section-label" style="margin-top:14px">1RM Calculator</div>
-    <div class="card" style="border-left:3px solid var(--accent)">
+    <div class="card" style="border-left:3px solid var(--accent2)">
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <div style="flex:1">
           <div class="input-label" style="margin-bottom:4px">Weight (kg)</div>
@@ -927,30 +928,139 @@ function buildSessionCanvas(ses){
   const prev=[...S.sessions].filter(s=>s!==ses).reverse().find(s=>s.day===ses.day);
   const vibe=VIBES[rateSession(ses,prev)]||VIBES.normal;
   const isDark=S.prefs.theme!=='light';
+
+  const W=1080;
+  const PAD=80;
+  const exEntries=Object.entries(ses.exercises);
+
+  // Calculate dynamic height
+  const HEADER_H=320;      // logo + date + day title
+  const VIBE_H=180;        // emoji + quote
+  const DIVIDER_H=40;
+  const EX_H=72;           // per exercise row
+  const STATS_H=120;       // volume/duration/exercises chips
+  const FOOTER_H=80;
+  const totalH=HEADER_H+VIBE_H+DIVIDER_H+(exEntries.length*EX_H)+DIVIDER_H+STATS_H+FOOTER_H+PAD;
+  const H=Math.max(totalH,900);
+
   const canvas=document.createElement('canvas');
-  const W=1080,H=1920;canvas.width=W;canvas.height=H;
+  canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext('2d');
-  ctx.fillStyle=isDark?'#0d160d':'#e8f5e8';ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='#6db36d';ctx.fillRect(0,0,W,10);
-  ctx.fillStyle='#6db36d';ctx.font='bold 90px serif';ctx.textAlign='left';ctx.fillText('LIFT',80,150);
-  ctx.fillStyle=isDark?'#5a7a5a':'#5a7e5a';ctx.font='38px sans-serif';ctx.fillText(fmtDate(ses.date),80,200);
-  ctx.fillStyle=isDark?'#e2ece2':'#1a2e1a';ctx.font='bold 62px sans-serif';ctx.fillText(`Day ${ses.day} — ${prog?.label||''} Day`,80,290);
-  ctx.font='80px sans-serif';ctx.fillText(vibe.e,80,390);
-  ctx.fillStyle=isDark?'#9ab89a':'#3a5e3a';ctx.font='italic 40px sans-serif';ctx.fillText(vibe.q,80,450);
-  ctx.fillStyle='#6db36d';ctx.fillRect(80,490,920,3);
-  let y=570;
-  Object.entries(ses.exercises).forEach(([name,ex])=>{
-    if(y>1700)return;
+
+  // Background
+  const bgColor=isDark?'#0a120a':'#f0f8f0';
+  ctx.fillStyle=bgColor;ctx.fillRect(0,0,W,H);
+
+  // Top accent bar - thick
+  const grad=ctx.createLinearGradient(0,0,W,0);
+  grad.addColorStop(0,'#4a9a4a');grad.addColorStop(1,'#6db36d');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,W,8);
+
+  // Bottom accent bar
+  ctx.fillStyle=grad;ctx.fillRect(0,H-8,W,8);
+
+  // LOGO + DATE row
+  ctx.fillStyle='#6db36d';
+  ctx.font='bold 72px serif';
+  ctx.textAlign='left';
+  ctx.fillText('LIFT',PAD,120);
+
+  ctx.fillStyle=isDark?'#5a7a5a':'#6a8a6a';
+  ctx.font='38px sans-serif';
+  ctx.fillText(fmtDate(ses.date),PAD+200,110);
+
+  // DAY TITLE
+  ctx.fillStyle=isDark?'#e2ece2':'#1a2e1a';
+  ctx.font='bold 72px sans-serif';
+  ctx.fillText(`Day ${ses.day} — ${prog?.label||''} Day`,PAD,210);
+
+  // VIBE block - tinted pill
+  const vibeBoxY=240;
+  ctx.fillStyle=isDark?'rgba(109,179,109,0.1)':'rgba(58,138,58,0.08)';
+  ctx.beginPath();
+  ctx.roundRect(PAD,vibeBoxY,W-PAD*2,130,20);
+  ctx.fill();
+  ctx.font='64px sans-serif';ctx.textAlign='left';
+  ctx.fillText(vibe.e,PAD+20,vibeBoxY+80);
+  ctx.fillStyle=isDark?'#9ab89a':'#3a6a3a';
+  ctx.font='italic 38px sans-serif';
+  ctx.fillText(vibe.q,PAD+100,vibeBoxY+84);
+
+  // DIVIDER
+  let y=vibeBoxY+160;
+  ctx.fillStyle=isDark?'#2a3d2a':'#c0d8c0';
+  ctx.fillRect(PAD,y,W-PAD*2,2);
+  y+=40;
+
+  // EXERCISES
+  exEntries.forEach(([name,ex],idx)=>{
     const isBig3=BIG3.includes(name);
     const repStr=isBig3?`2×5 + ${ex.plusReps||ex.reps}`:`${ex.sets||3}×${ex.reps}`;
-    ctx.fillStyle=isDark?'#9ab89a':'#3a5e3a';ctx.font='36px sans-serif';ctx.textAlign='left';ctx.fillText(name,80,y);
-    ctx.fillStyle=isDark?'#e2ece2':'#1a2e1a';ctx.font='bold 36px sans-serif';ctx.textAlign='right';ctx.fillText(`${ex.weight}kg · ${repStr}`,1000,y);
-    y+=68;
+
+    // Big 3 row tint
+    if(isBig3){
+      ctx.fillStyle=isDark?'rgba(109,179,109,0.08)':'rgba(58,138,58,0.06)';
+      ctx.fillRect(PAD-10,y-8,W-PAD*2+20,EX_H-8);
+    }
+
+    // Exercise name
+    ctx.fillStyle=isBig3?(isDark?'#7dc87d':'#2a7a2a'):(isDark?'#9ab89a':'#3a5e3a');
+    ctx.font=isBig3?'bold 40px sans-serif':'38px sans-serif';
+    ctx.textAlign='left';
+    // truncate long names
+    let displayName=name;
+    if(ctx.measureText(displayName).width>500)displayName=displayName.substring(0,22)+'…';
+    ctx.fillText(displayName,PAD,y+44);
+
+    // Weight — big and bold
+    ctx.fillStyle=isBig3?'#6db36d':(isDark?'#e2ece2':'#1a2e1a');
+    ctx.font='bold 44px sans-serif';
+    ctx.textAlign='right';
+    ctx.fillText(`${ex.weight}kg`,W-PAD-200,y+44);
+
+    // Rep pill
+    const pillX=W-PAD-180;
+    const pillW=170;
+    ctx.fillStyle=isDark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)';
+    ctx.beginPath();ctx.roundRect(pillX,y+16,pillW,36,10);ctx.fill();
+    ctx.fillStyle=isDark?'#9ab89a':'#4a6a4a';
+    ctx.font='bold 28px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText(repStr,pillX+pillW/2,y+40);
+
+    y+=EX_H;
   });
-  ctx.fillStyle='#6db36d';ctx.fillRect(80,y+10,920,3);y+=55;
-  ctx.fillStyle=isDark?'#9ab89a':'#3a5e3a';ctx.font='36px sans-serif';ctx.textAlign='left';
-  ctx.fillText(`Volume: ~${Math.round(ses.volume/1000)}t`,80,y+40);
-  ctx.fillStyle=isDark?'#2a3d2a':'#90c090';ctx.font='30px sans-serif';ctx.textAlign='center';ctx.fillText('tracked with LIFT',W/2,H-60);
+
+  // DIVIDER
+  ctx.fillStyle=isDark?'#2a3d2a':'#c0d8c0';
+  ctx.fillRect(PAD,y,W-PAD*2,2);
+  y+=36;
+
+  // STATS CHIPS
+  const stats=[
+    {label:'EXERCISES',val:exEntries.length},
+    {label:'VOLUME',val:ses.volume>100?`~${Math.round(ses.volume/1000)}t`:'—'},
+    {label:'DURATION',val:ses.duration?fmtTime(ses.duration):'—'},
+  ];
+  const chipW=(W-PAD*2-30)/3;
+  stats.forEach((st,i)=>{
+    const cx=PAD+i*(chipW+15);
+    ctx.fillStyle=isDark?'rgba(109,179,109,0.12)':'rgba(58,138,58,0.1)';
+    ctx.beginPath();ctx.roundRect(cx,y,chipW,90,12);ctx.fill();
+    ctx.fillStyle='#6db36d';
+    ctx.font='bold 42px sans-serif';ctx.textAlign='center';
+    ctx.fillText(String(st.val),cx+chipW/2,y+52);
+    ctx.fillStyle=isDark?'#5a7a5a':'#6a8a6a';
+    ctx.font='24px sans-serif';
+    ctx.fillText(st.label,cx+chipW/2,y+78);
+  });
+  y+=110;
+
+  // FOOTER
+  ctx.fillStyle=isDark?'#2a3d2a':'#90c090';
+  ctx.font='28px sans-serif';ctx.textAlign='center';
+  ctx.fillText('tracked with LIFT',W/2,y+40);
+
   return canvas;
 }
 
@@ -1190,7 +1300,12 @@ function renderHistory(){
     const exRows=Object.entries(s.exercises).map(([n,e])=>{
       const isBig3=BIG3.includes(n);
       const repStr=isBig3?`2×5 + ${e.plusReps||e.reps}`:`${e.sets||3}×${e.reps}`;
-      return`<div class="hist-ex-row"><span class="hist-ex-name">${n}</span><span class="hist-ex-val">${e.weight}kg · ${repStr}</span></div>`;
+      const weightPill=`<span style="font-family:'Bebas Neue',sans-serif;font-size:15px;${isBig3?'color:var(--accent)':'color:var(--text)'};letter-spacing:.5px">${e.weight}kg</span>`;
+      const repPill=`<span style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;font-size:11px;font-weight:600;padding:2px 8px;color:var(--text2);white-space:nowrap">${repStr}</span>`;
+      return`<div class="hist-ex-row${isBig3?' big3':''}">
+        <span class="hist-ex-name" style="${isBig3?'font-weight:600;color:var(--text)':''}"><span style="font-size:10px;color:var(--text3);margin-right:4px">●</span>${n}</span>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${weightPill}${repPill}</div>
+      </div>`;
     }).join('');
     return`<div class="history-item">
       <div class="hist-header"><div class="hist-day-label">${label}</div><div class="hist-date">${fmtDate(s.date)}</div></div>
