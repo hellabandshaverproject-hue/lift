@@ -505,7 +505,13 @@ function shouldJump(name){const h=getHist(name,3);if(h.length<2)return false;con
 function isPR(name,w){const h=getHist(name);return h.length>0&&w>Math.max(...h.map(x=>x.weight));}
 function fmtDate(iso){return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
 function fmtTime(s){return`${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;}
-function daysSince(iso){if(!iso)return null;return Math.floor((Date.now()-new Date(iso))/(864e5));}
+function daysSince(iso){
+  if(!iso)return null;
+  const now=new Date();const then=new Date(iso);
+  const nowDate=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const thenDate=new Date(then.getFullYear(),then.getMonth(),then.getDate());
+  return Math.round((nowDate-thenDate)/(864e5));
+}
 function lastDayDate(day){for(let i=S.sessions.length-1;i>=0;i--)if(S.sessions[i].day===day)return S.sessions[i].date;return null;}
 function calcVol(exs){let t=0;Object.values(exs).forEach(e=>t+=(e.weight||0)*parseLowestRep(e.reps)*(e.sets||3));return Math.round(t);}
 function isoWeek(d){const j=new Date(d.getFullYear(),0,1);return Math.ceil(((d-j)/864e5+j.getDay()+1)/7);}
