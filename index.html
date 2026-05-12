@@ -674,13 +674,17 @@ function renderWorkout(){
     const nm=ex.name.replace(/'/g,"\\'");
 
     if(isActiveDayViewing){
+      // pill only shows when data is logged — weight + reps for accessories, weight + amrap for Big 3
+      const pillStr=dW
+        ? (ex.main?`${dW}kg · 2×5 + ${cur?cur.plusReps:(last?.plusReps||'?')}`:`${dW}kg · ${cur?.sets||ex.ds||3}× · ${dR}`)
+        : '';
       html+=`<div class="ex-row ${sk?'ex-skipped':''}">
         <div class="ex-info">
           <div class="ex-name">${ex.name}</div>
-          <div class="ex-sets">${ex.sets}${dW?` · ${dW}kg × ${dR}`:''}</div>
+          <div class="ex-sets">${ex.sets}</div>
           ${flags?`<div class="ex-flags">${flags}</div>`:''}
         </div>
-        <div style="background:var(--text);color:var(--bg);font-size:11px;font-weight:700;padding:4px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;letter-spacing:.3px">${ex.ds||3}×</div>
+        ${pillStr?`<div style="background:var(--text);color:var(--bg);font-size:10px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;letter-spacing:.2px;text-align:center">${pillStr}</div>`:''}
         ${!sk?`
           <button class="skip-btn" onclick="skipEx('${nm}')">Skip</button>
           <button class="${cur?'log-btn logged':'log-btn'}" onclick="openLog('${nm}','${ex.sets}',${ex.dr||5},${ex.ds||3})">
@@ -689,14 +693,16 @@ function renderWorkout(){
         :`<button class="skip-btn" onclick="unskip('${nm}')">Undo</button>`}
       </div>`;
     } else {
-      // Browse mode — show last weights, no log buttons
+      const pillStr=dW
+        ? (ex.main?`${dW}kg · 2×5 + ${last?.plusReps||'?'}`:`${dW}kg · ${ex.ds||3}× · ${dR}`)
+        : '';
       html+=`<div class="ex-row" style="opacity:0.7">
         <div class="ex-info">
           <div class="ex-name">${ex.name}</div>
-          <div class="ex-sets">${ex.sets}${dW?` · ${dW}kg × ${dR}`:''}</div>
+          <div class="ex-sets">${ex.sets}</div>
           ${flags?`<div class="ex-flags">${flags}</div>`:''}
         </div>
-        <div style="background:var(--text);color:var(--bg);font-size:11px;font-weight:700;padding:4px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;letter-spacing:.3px">${ex.ds||3}×</div>
+        ${pillStr?`<div style="background:var(--text);color:var(--bg);font-size:10px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;letter-spacing:.2px;text-align:center">${pillStr}</div>`:''}
       </div>`;
     }
   });
