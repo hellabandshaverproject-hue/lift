@@ -159,7 +159,7 @@ canvas{display:block;width:100%}
 .modal-confirm:active{transform:scale(.98)}
 
 /* SUMMARY MODAL */
-.sum-modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;padding:22px 18px 40px;width:100%;max-width:480px;transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.4,.64,1);max-height:85vh;overflow-y:auto}
+.sum-modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;padding:22px 18px 40px;width:100%;max-width:480px;transform:translateY(100%);transition:transform .4s cubic-bezier(.34,1.4,.64,1);max-height:85vh;overflow-y:auto}
 .modal-overlay.open .sum-modal{transform:translateY(0)}
 .sum-vibe{font-size:40px;text-align:center;margin-bottom:4px}
 .sum-quote{font-size:14px;color:var(--text2);text-align:center;font-style:italic;margin-bottom:16px}
@@ -212,6 +212,13 @@ canvas{display:block;width:100%}
 .install-text{font-size:12px;color:var(--text2);flex:1}
 .install-btn-sm{background:var(--accent);border:none;border-radius:6px;color:#0d160d;font-size:12px;font-weight:700;padding:6px 12px;cursor:pointer;font-family:'DM Sans',sans-serif}
 .dismiss-install{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0}
+.pr-overlay{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .3s}
+.pr-overlay.show{opacity:1}
+.pr-box{background:var(--bg2);border:2px solid var(--yellow);border-radius:var(--r);padding:24px 32px;text-align:center;transform:scale(.8);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.pr-overlay.show .pr-box{transform:scale(1)}
+.pr-emoji{font-size:48px;margin-bottom:8px}
+.pr-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--yellow);margin-bottom:4px}
+.pr-sub{font-size:14px;color:var(--text2)}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:8px 18px;font-size:13px;color:var(--text);opacity:0;transition:all .25s;z-index:300;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .empty{text-align:center;padding:40px 24px;color:var(--text3)}
@@ -226,7 +233,7 @@ canvas{display:block;width:100%}
 
 <div class="header">
   <div class="logo">LIFT</div>
-  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.2</div>
+  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.3</div>
   <div class="header-right">
     <div class="header-streak">🔥 <span class="streak-val" id="streakVal">0</span> wk</div>
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
@@ -255,6 +262,7 @@ canvas{display:block;width:100%}
     <div class="day-selector" id="daySelector"></div>
     <div id="workoutArea"></div>
     <div id="startSessionWrap" style="position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:10px 14px;display:flex;">
+      <div style="position:absolute;top:-40px;left:0;right:0;height:40px;background:linear-gradient(to bottom,transparent,var(--bg));pointer-events:none"></div>
       <button onclick="startSession()" style="width:100%;background:var(--accent);border:none;border-radius:var(--r-sm);color:#0d160d;font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;padding:11px;cursor:pointer;letter-spacing:.5px">▶ Start Session</button>
     </div>
     <div id="sessionBar" class="session-bar" style="display:none">
@@ -285,6 +293,8 @@ canvas{display:block;width:100%}
     <div class="chart-wrap" id="weeklyVolumeWrap">
       <canvas id="weeklyVolumeChart" height="160"></canvas>
     </div>
+    <div class="section-label" style="margin-top:14px">Training Pattern</div>
+    <div class="card" id="restDayCard"></div>
   </div>
 
   <!-- HISTORY -->
@@ -415,6 +425,13 @@ canvas{display:block;width:100%}
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="pr-overlay" id="prOverlay">
+  <div class="pr-box">
+    <div class="pr-emoji">🏆</div>
+    <div class="pr-title" id="prTitle"></div>
+    <div class="pr-sub" id="prSub"></div>
+  </div>
+</div>
 
 <script>
 // ── PROGRAM ──
@@ -780,18 +797,18 @@ function openLog(name,sets,dr,ds){
             <div class="adj" onclick="adjW(2.5)">+</div>
           </div>
         </div>
-        <div style="display:flex;gap:10px;align-items:flex-start">
-          <div class="input-group" style="flex:3">
+        <div style="display:flex;flex-direction:column;gap:10px;width:100%">
+          <div>
             <div class="input-label">Reps</div>
-            <input class="num-in secondary" type="text" id="rIn" inputmode="numeric" value="${r}" style="font-size:30px;width:100%;height:50px;text-align:center;border-radius:var(--r-sm);border:2px solid var(--border)">
+            <input class="num-in secondary" type="text" id="rIn" inputmode="numeric" value="${r}" style="font-size:32px;width:100%;height:52px;text-align:center;border-radius:var(--r-sm);border:2px solid var(--border);display:block">
             <div style="font-size:9px;color:var(--text3);margin-top:3px;text-align:center">e.g. 10 or 10-8</div>
           </div>
-          <div class="input-group" style="flex:2">
+          <div>
             <div class="input-label">Sets</div>
-            <div style="display:flex;align-items:center;gap:4px;height:50px">
-              <div class="adj" onclick="adjS(-1)" style="font-size:18px;width:32px;height:50px;flex-shrink:0">−</div>
-              <input class="num-in secondary" type="number" id="sIn" inputmode="numeric" value="${st}" style="font-size:28px;flex:1;min-width:0;height:50px">
-              <div class="adj" onclick="adjS(1)" style="font-size:18px;width:32px;height:50px;flex-shrink:0">+</div>
+            <div style="display:flex;align-items:center;gap:6px;height:52px">
+              <div class="adj" onclick="adjS(-1)" style="font-size:20px;width:52px;height:52px;flex-shrink:0">−</div>
+              <input class="num-in secondary" type="number" id="sIn" inputmode="numeric" value="${st}" style="font-size:32px;flex:1;min-width:0;height:52px;text-align:center">
+              <div class="adj" onclick="adjS(1)" style="font-size:20px;width:52px;height:52px;flex-shrink:0">+</div>
             </div>
           </div>
         </div>
@@ -826,7 +843,11 @@ function confirmLog(){
     S.cur[modalEx]={weight:w,reps:repsDisplay,sets:st};
   }
   document.getElementById('logModal').classList.remove('open');modalEx=null;
-  save();renderWorkout();showToast('Logged ✓');
+  // Big 3 PR check
+  if(isMain&&isPR(modalEx,w)){
+    showPRToast(modalEx,w);
+  }
+  save();renderWorkout();if(!isMain)showToast('Logged ✓');
 }
 
 function cancelSession(){
@@ -948,16 +969,15 @@ function buildSessionCanvas(ses){
   const ctx=canvas.getContext('2d');
 
   // Background
-  const bgColor=isDark?'#0a120a':'#f0f8f0';
+  const bgColor=isDark?'#0a120a':'#ddeedd';
   ctx.fillStyle=bgColor;ctx.fillRect(0,0,W,H);
 
-  // Top accent bar - thick
+  // Top accent bar
   const grad=ctx.createLinearGradient(0,0,W,0);
   grad.addColorStop(0,'#4a9a4a');grad.addColorStop(1,'#6db36d');
-  ctx.fillStyle=grad;ctx.fillRect(0,0,W,8);
-
+  ctx.fillStyle=grad;ctx.fillRect(0,0,W,10);
   // Bottom accent bar
-  ctx.fillStyle=grad;ctx.fillRect(0,H-8,W,8);
+  ctx.fillStyle=grad;ctx.fillRect(0,H-10,W,10);
 
   // LOGO + DATE row
   ctx.fillStyle='#6db36d';
@@ -974,17 +994,15 @@ function buildSessionCanvas(ses){
   ctx.font='bold 72px sans-serif';
   ctx.fillText(`Day ${ses.day} — ${prog?.label||''} Day`,PAD,210);
 
-  // VIBE block - tinted pill
+  // VIBE block
   const vibeBoxY=240;
-  ctx.fillStyle=isDark?'rgba(109,179,109,0.1)':'rgba(58,138,58,0.08)';
-  ctx.beginPath();
-  ctx.roundRect(PAD,vibeBoxY,W-PAD*2,130,20);
-  ctx.fill();
-  ctx.font='64px sans-serif';ctx.textAlign='left';
-  ctx.fillText(vibe.e,PAD+20,vibeBoxY+80);
-  ctx.fillStyle=isDark?'#9ab89a':'#3a6a3a';
-  ctx.font='italic 38px sans-serif';
-  ctx.fillText(vibe.q,PAD+100,vibeBoxY+84);
+  ctx.fillStyle=isDark?'rgba(109,179,109,0.12)':'rgba(58,138,58,0.1)';
+  ctx.beginPath();ctx.roundRect(PAD,vibeBoxY,W-PAD*2,140,20);ctx.fill();
+  ctx.font='72px sans-serif';ctx.textAlign='left';
+  ctx.fillText(vibe.e,PAD+20,vibeBoxY+96);
+  ctx.fillStyle=isDark?'#9ab89a':'#2a5a2a';
+  ctx.font='italic 40px sans-serif';
+  ctx.fillText(vibe.q,PAD+110,vibeBoxY+96);
 
   // DIVIDER
   let y=vibeBoxY+160;
@@ -1021,12 +1039,12 @@ function buildSessionCanvas(ses){
     // Rep pill
     const pillX=W-PAD-180;
     const pillW=170;
-    ctx.fillStyle=isDark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)';
-    ctx.beginPath();ctx.roundRect(pillX,y+16,pillW,36,10);ctx.fill();
-    ctx.fillStyle=isDark?'#9ab89a':'#4a6a4a';
-    ctx.font='bold 28px sans-serif';
+    ctx.fillStyle=isDark?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.12)';
+    ctx.beginPath();ctx.roundRect(pillX,y+16,pillW,38,10);ctx.fill();
+    ctx.fillStyle=isDark?'#9ab89a':'#2a4a2a';
+    ctx.font='bold 30px sans-serif';
     ctx.textAlign='center';
-    ctx.fillText(repStr,pillX+pillW/2,y+40);
+    ctx.fillText(repStr,pillX+pillW/2,y+42);
 
     y+=EX_H;
   });
@@ -1099,12 +1117,31 @@ function renderProgress(){
   renderRecords();
   document.getElementById('exPicker').innerHTML=ALL_EX.map(e=>`<div class="ex-chip ${e===selEx?'active':''}" onclick="selExFn('${e.replace(/'/g,"\\'")}')">${e}</div>`).join('');
   renderChart();renderBWChart();renderWeekly();
-  requestAnimationFrame(()=>renderWeeklyVolumeChart());
+  requestAnimationFrame(()=>{renderWeeklyVolumeChart();renderRestDays();});
 }
 function selExFn(n){selEx=n;renderProgress();}
 
+function getStrengthLevel(name,weight,bw){
+  if(!bw||bw<=0)return null;
+  const ratio=weight/bw;
+  const standards={
+    'Flat Bench Press':    [{l:'Elite',r:1.5},{l:'Advanced',r:1.25},{l:'Intermediate',r:1.0},{l:'Novice',r:0.75},{l:'Beginner',r:0.5}],
+    'Barbell Squat':       [{l:'Elite',r:2.5},{l:'Advanced',r:2.0},{l:'Intermediate',r:1.5},{l:'Novice',r:1.25},{l:'Beginner',r:0.75}],
+    'Conventional Deadlift':[{l:'Elite',r:3.0},{l:'Advanced',r:2.5},{l:'Intermediate',r:2.0},{l:'Novice',r:1.5},{l:'Beginner',r:1.0}],
+  };
+  const tiers=standards[name];
+  if(!tiers)return null;
+  for(const t of tiers){if(ratio>=t.r)return t.l;}
+  return'Untrained';
+}
+
+function getLevelColor(level){
+  const map={Elite:'#c4b85a',Advanced:'#7dc87d',Intermediate:'#6db36d',Novice:'#5a9ab4',Beginner:'#9ab89a',Untrained:'#5a7a5a'};
+  return map[level]||'#5a7a5a';
+}
 function renderRecords(){
   const el=document.getElementById('recordsCard');
+  const lastBW=S.bws.length?S.bws[S.bws.length-1].weight:null;
   el.innerHTML=BIG3.map((name,idx)=>{
     const h=getHist(name);
     if(!h.length)return`<div style="padding:14px 16px;border-bottom:${idx<2?'1px solid var(--border)':'none'}">
@@ -1114,11 +1151,16 @@ function renderRecords(){
     const best=h.reduce((a,b)=>a.weight>b.weight?a:b);
     const orm=epley(best.weight,best.plusReps||best.reps||5);
     const repLabel=best.plusReps?`2×5 + ${best.plusReps}`:`× ${best.reps||5}`;
+    const level=getStrengthLevel(name,best.weight,lastBW);
+    const levelColor=getLevelColor(level);
     return`<div style="padding:14px 16px;border-bottom:${idx<2?'1px solid var(--border)':'none'};display:flex;align-items:center;gap:12px">
-      <div style="width:3px;height:48px;background:var(--accent);border-radius:2px;flex-shrink:0"></div>
+      <div style="width:3px;height:56px;background:var(--accent);border-radius:2px;flex-shrink:0"></div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.1px">${name}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:1px">${fmtDate(best.date)}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+          <div style="font-size:10px;color:var(--text3)">${fmtDate(best.date)}</div>
+          ${level?`<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;background:${levelColor}22;color:${levelColor};letter-spacing:.5px;text-transform:uppercase">${level}</span>`:''}
+        </div>
       </div>
       <div style="text-align:right">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);letter-spacing:1px;line-height:1">${best.weight}kg ${repLabel}</div>
@@ -1272,6 +1314,32 @@ function renderWeeklyVolumeChart(){
   });
 }
 
+function renderRestDays(){
+  const el=document.getElementById('restDayCard');
+  if(!el)return;
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const counts=[0,0,0,0,0,0,0];
+  S.sessions.forEach(s=>{
+    const d=new Date(s.date);
+    let dow=d.getDay()-1; if(dow<0)dow=6; // Mon=0
+    counts[dow]++;
+  });
+  const max=Math.max(...counts,1);
+  el.innerHTML=`
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Based on ${S.sessions.length} sessions</div>
+    <div style="display:flex;gap:6px;align-items:flex-end;height:60px">
+      ${days.map((d,i)=>{
+        const h=Math.round((counts[i]/max)*48);
+        const isTop=counts[i]===max&&counts[i]>0;
+        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="width:100%;height:${h||4}px;background:${counts[i]>0?(isTop?'var(--accent)':'var(--accent-dim)'):'var(--bg3)'};border-radius:4px;border:1px solid ${counts[i]>0?'var(--accent)':'var(--border)'};transition:height .3s"></div>
+          <div style="font-size:9px;color:${counts[i]>0?'var(--text2)':'var(--text3)'};font-weight:${isTop?700:400}">${d}</div>
+          ${counts[i]>0?`<div style="font-size:8px;color:var(--text3)">${counts[i]}×</div>`:'<div style="font-size:8px;color:transparent">0</div>'}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
 // ── WEEKLY ──
 function renderWeekly(){
   const now=new Date(),ws=new Date(now);ws.setDate(now.getDate()-now.getDay()+1);ws.setHours(0,0,0,0);
@@ -1317,6 +1385,7 @@ function renderHistory(){
       ${exRows}
       <div class="hist-actions">
         <div class="hist-edit-btn" onclick="openEdit(${i})">✏️ Edit</div>
+        <div class="hist-edit-btn" onclick="saveSessionImage(S.sessions[${i}])" style="color:var(--accent);border-color:var(--accent)">💾 Save</div>
         <div class="hist-del-btn" onclick="delSession(${i})">Delete</div>
       </div>
     </div>`;
@@ -1483,6 +1552,15 @@ function importData(e){
 
 // ── STREAK ──
 function updateStreak(){document.getElementById('streakVal').textContent=calcStreak();}
+
+// ── PR TOAST ──
+function showPRToast(name,weight){
+  const overlay=document.getElementById('prOverlay');
+  document.getElementById('prTitle').textContent=`NEW PR — ${name}`;
+  document.getElementById('prSub').textContent=`${weight}kg · your xp is too high 🤑`;
+  overlay.classList.add('show');
+  setTimeout(()=>overlay.classList.remove('show'),2800);
+}
 
 // ── TOAST ──
 function showToast(msg){
