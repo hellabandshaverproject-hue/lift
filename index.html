@@ -233,7 +233,7 @@ canvas{display:block;width:100%}
 
 <div class="header">
   <div class="logo">LIFT</div>
-  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.3</div>
+  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.5</div>
   <div class="header-right">
     <div class="header-streak">🔥 <span class="streak-val" id="streakVal">0</span> wk</div>
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
@@ -260,7 +260,7 @@ canvas{display:block;width:100%}
     </div>
     <div class="section-label">Select Day</div>
     <div class="day-selector" id="daySelector"></div>
-    <div id="workoutArea"></div>
+    <div id="workoutArea" style="padding-bottom:60px"></div>
     <div id="startSessionWrap" style="position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:10px 14px;display:flex;">
       <div style="position:absolute;top:-40px;left:0;right:0;height:40px;background:linear-gradient(to bottom,transparent,var(--bg));pointer-events:none"></div>
       <button onclick="startSession()" style="width:100%;background:var(--accent);border:none;border-radius:var(--r-sm);color:#0d160d;font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;padding:11px;cursor:pointer;letter-spacing:.5px">▶ Start Session</button>
@@ -289,6 +289,8 @@ canvas{display:block;width:100%}
     </div>
     <div class="section-label" style="margin-top:14px">This Week</div>
     <div id="weeklySummary"></div>
+    <div class="section-label" style="margin-top:14px">Avg Session Duration</div>
+    <div class="card" id="avgDurCard"></div>
     <div class="section-label" style="margin-top:14px">Weekly Volume</div>
     <div class="chart-wrap" id="weeklyVolumeWrap">
       <canvas id="weeklyVolumeChart" height="160"></canvas>
@@ -691,7 +693,9 @@ function renderWorkout(){
     const dW=cur?cur.weight:(last?last.weight:null);
     // Big 3: show plusReps for the AMRAP set display
     const dR=ex.main
-      ? (cur?`2×5 + ${cur.plusReps||cur.reps}`:(last?`2×5 + ${last.plusReps||last.reps}`:null))
+      ? (cur
+          ? `${cur.workSets||2}×${cur.workReps||5}${cur.plusReps?` + ${cur.plusReps}`:''}`
+          : (last?`${last.workSets||2}×${last.workReps||5}${last.plusReps?` + ${last.plusReps}`:''}`:null))
       : (cur?cur.reps:(last?last.reps:null));
     const nm=ex.name.replace(/'/g,"\\'");
 
@@ -767,6 +771,8 @@ function openLog(name,sets,dr,ds){
   document.getElementById('quickWeights').innerHTML=sugg.filter(x=>x>0).map(x=>`<div class="quick-w" onclick="setW(${x})">${x}</div>`).join('');
 
   if(isMain){
+    const workSets=cur?.workSets??last?.workSets??2;
+    const workReps=cur?.workReps??last?.workReps??5;
     document.getElementById('inputFields').innerHTML=`
       <div style="width:100%;display:flex;flex-direction:column;gap:12px">
         <div class="input-group">
@@ -777,11 +783,29 @@ function openLog(name,sets,dr,ds){
             <div class="adj" onclick="adjW(2.5)">+</div>
           </div>
         </div>
+        <div style="display:flex;gap:10px">
+          <div class="input-group" style="flex:1">
+            <div class="input-label">Working Sets</div>
+            <div class="num-row">
+              <div class="adj" onclick="adjWorkSets(-1)" style="font-size:18px">−</div>
+              <input class="num-in secondary" type="number" id="workSetsIn" inputmode="numeric" value="${workSets}" style="font-size:28px">
+              <div class="adj" onclick="adjWorkSets(1)" style="font-size:18px">+</div>
+            </div>
+          </div>
+          <div class="input-group" style="flex:1">
+            <div class="input-label">Reps Each</div>
+            <div class="num-row">
+              <div class="adj" onclick="adjWorkReps(-1)" style="font-size:18px">−</div>
+              <input class="num-in secondary" type="number" id="workRepsIn" inputmode="numeric" value="${workReps}" style="font-size:28px">
+              <div class="adj" onclick="adjWorkReps(1)" style="font-size:18px">+</div>
+            </div>
+          </div>
+        </div>
         <div class="input-group">
-          <div class="input-label">Plus Set Reps (AMRAP)</div>
+          <div class="input-label">Plus Set Reps (AMRAP) — optional</div>
           <div class="num-row">
             <div class="adj" onclick="adjPlus(-1)">−</div>
-            <input class="num-in secondary" type="number" id="plusRepsIn" inputmode="numeric" value="${plusR}" style="font-size:36px">
+            <input class="num-in secondary" type="number" id="plusRepsIn" inputmode="numeric" value="${plusR}" style="font-size:36px" placeholder="—">
             <div class="adj" onclick="adjPlus(1)">+</div>
           </div>
         </div>
@@ -822,6 +846,8 @@ function adjW(d){const i=document.getElementById('wIn')||document.getElementById
 function adjR(d){const i=document.getElementById('rIn');if(i)i.value=Math.max(1,(parseInt(i.value)||0)+d);}
 function adjS(d){const i=document.getElementById('sIn');if(i)i.value=Math.max(1,(parseInt(i.value)||0)+d);}
 function adjPlus(d){const i=document.getElementById('plusRepsIn');if(i)i.value=Math.max(1,(parseInt(i.value)||0)+d);}
+function adjWorkSets(d){const i=document.getElementById('workSetsIn');if(i)i.value=Math.max(1,(parseInt(i.value)||0)+d);}
+function adjWorkReps(d){const i=document.getElementById('workRepsIn');if(i)i.value=Math.max(1,(parseInt(i.value)||0)+d);}
 function setW(w){const i=document.getElementById('wIn')||document.getElementById('wIn2');if(i)i.value=w;}
 function confirmLog(){
   const isMain=BIG3.includes(modalEx);
@@ -830,8 +856,11 @@ function confirmLog(){
   if(!w||w<=0){showToast('Enter a valid weight');return;}
   if(!modalEx)return;
   if(isMain){
-    const plusR=parseInt(document.getElementById('plusRepsIn')?.value)||5;
-    S.cur[modalEx]={weight:w,reps:5,sets:3,plusReps:plusR};
+    const plusR=parseInt(document.getElementById('plusRepsIn')?.value)||null;
+    const workSets=parseInt(document.getElementById('workSetsIn')?.value)||2;
+    const workReps=parseInt(document.getElementById('workRepsIn')?.value)||5;
+    // 1RM uses plusReps if available, else workReps
+    S.cur[modalEx]={weight:w,reps:workReps,sets:workSets,workSets,workReps,plusReps:plusR||undefined};
   } else {
     const rRaw=(document.getElementById('rIn')?.value||'').trim();
     const st=parseInt(document.getElementById('sIn')?.value)||3;
@@ -904,7 +933,7 @@ function showSummary(ses,rating){
   const vibe=VIBES[rating]||VIBES.normal;
   const prog=PROG.find(d=>d.day===ses.day);
   const prs=Object.entries(ses.exercises).filter(([n,e])=>isPR(n,e.weight)).map(([n,e])=>`${n} — ${e.weight}kg`);
-  const big3=BIG3.map(n=>{const e=ses.exercises[n];if(!e)return'';const orm=epley(e.weight,e.plusReps||e.reps);return`<div class="sum-ex-row"><span class="sum-ex-name">${n}</span><span class="sum-ex-val">${e.weight}kg · 2×5 + ${e.plusReps||e.reps} · ~${orm}kg 1RM</span></div>`;}).filter(Boolean).join('');
+  const big3=BIG3.map(n=>{const e=ses.exercises[n];if(!e)return'';const orm=epley(e.weight,e.plusReps||e.workReps||e.reps);const repStr=`${e.workSets||2}×${e.workReps||5}${e.plusReps?` + ${e.plusReps}`:''}`;return`<div class="sum-ex-row"><span class="sum-ex-name">${n}</span><span class="sum-ex-val">${e.weight}kg · ${repStr} · ~${orm}kg 1RM</span></div>`;}).filter(Boolean).join('');
   const acc=Object.entries(ses.exercises).filter(([n])=>!BIG3.includes(n)).map(([n,e])=>`<div class="sum-ex-row"><span class="sum-ex-name">${n}</span><span class="sum-ex-val">${e.weight}kg × ${e.reps}</span></div>`).join('');
   document.getElementById('sumContent').innerHTML=`
     <div class="sum-vibe">${vibe.e}</div>
@@ -1117,7 +1146,7 @@ function renderProgress(){
   renderRecords();
   document.getElementById('exPicker').innerHTML=ALL_EX.map(e=>`<div class="ex-chip ${e===selEx?'active':''}" onclick="selExFn('${e.replace(/'/g,"\\'")}')">${e}</div>`).join('');
   renderChart();renderBWChart();renderWeekly();
-  requestAnimationFrame(()=>{renderWeeklyVolumeChart();renderRestDays();});
+  requestAnimationFrame(()=>{renderWeeklyVolumeChart();renderRestDays();renderAvgDuration();});
 }
 function selExFn(n){selEx=n;renderProgress();}
 
@@ -1326,18 +1355,51 @@ function renderRestDays(){
   });
   const max=Math.max(...counts,1);
   el.innerHTML=`
-    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Based on ${S.sessions.length} sessions</div>
-    <div style="display:flex;gap:6px;align-items:flex-end;height:60px">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Based on ${S.sessions.length} sessions</div>
+    <div style="display:flex;gap:6px;align-items:flex-end;height:80px;margin-bottom:8px">
       ${days.map((d,i)=>{
-        const h=Math.round((counts[i]/max)*48);
+        const h=Math.max(Math.round((counts[i]/max)*64),counts[i]>0?8:4);
         const isTop=counts[i]===max&&counts[i]>0;
-        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-          <div style="width:100%;height:${h||4}px;background:${counts[i]>0?(isTop?'var(--accent)':'var(--accent-dim)'):'var(--bg3)'};border-radius:4px;border:1px solid ${counts[i]>0?'var(--accent)':'var(--border)'};transition:height .3s"></div>
+        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+          <div style="width:100%;height:${h}px;background:${counts[i]>0?(isTop?'var(--accent)':'var(--accent-dim)'):'var(--bg3)'};border-radius:4px;border:1px solid ${counts[i]>0?'var(--accent)':'var(--border)'}"></div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:6px">
+      ${days.map((d,i)=>{
+        const isTop=counts[i]===max&&counts[i]>0;
+        return`<div style="flex:1;text-align:center">
           <div style="font-size:9px;color:${counts[i]>0?'var(--text2)':'var(--text3)'};font-weight:${isTop?700:400}">${d}</div>
-          ${counts[i]>0?`<div style="font-size:8px;color:var(--text3)">${counts[i]}×</div>`:'<div style="font-size:8px;color:transparent">0</div>'}
+          <div style="font-size:8px;color:var(--text3)">${counts[i]>0?counts[i]+'×':''}</div>
         </div>`;
       }).join('')}
     </div>`;
+}
+
+function renderAvgDuration(){
+  const el=document.getElementById('avgDurCard');if(!el)return;
+  const fourWeeksAgo=new Date();fourWeeksAgo.setDate(fourWeeksAgo.getDate()-28);
+  const recent=S.sessions.filter(s=>new Date(s.date)>=fourWeeksAgo&&s.duration>0);
+  if(!recent.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center">No duration data yet — edit sessions to add duration</div>';return;}
+  const avg=Math.round(recent.reduce((a,s)=>a+s.duration,0)/recent.length);
+  const longest=Math.max(...recent.map(s=>s.duration));
+  const shortest=Math.min(...recent.map(s=>s.duration));
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div style="text-align:center">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);letter-spacing:1px">${fmtTime(avg)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Avg (4wk)</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--green);letter-spacing:1px">${fmtTime(shortest)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Shortest</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--text2);letter-spacing:1px">${fmtTime(longest)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Longest</div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:8px">${recent.length} sessions with duration logged</div>`;
 }
 
 // ── WEEKLY ──
@@ -1367,7 +1429,9 @@ function renderHistory(){
     const label=prog?`Day ${s.day} — ${prog.label}`:`Day ${s.day}`;
     const exRows=Object.entries(s.exercises).map(([n,e])=>{
       const isBig3=BIG3.includes(n);
-      const repStr=isBig3?`2×5 + ${e.plusReps||e.reps}`:`${e.sets||3}×${e.reps}`;
+      const repStr=isBig3
+        ? `${e.workSets||2}×${e.workReps||5}${e.plusReps?` + ${e.plusReps}`:''}`
+        :`${e.sets||3}×${e.reps}`;
       const weightPill=`<span style="font-family:'Bebas Neue',sans-serif;font-size:15px;${isBig3?'color:var(--accent)':'color:var(--text)'};letter-spacing:.5px">${e.weight}kg</span>`;
       const repPill=`<span style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;font-size:11px;font-weight:600;padding:2px 8px;color:var(--text2);white-space:nowrap">${repStr}</span>`;
       return`<div class="hist-ex-row${isBig3?' big3':''}">
@@ -1409,9 +1473,15 @@ function openEdit(i){
       <span style="font-size:11px;color:var(--text3)">kg ×</span>
       <input class="edit-reps-in" type="text" data-ex="${n}" data-f="reps" value="${BIG3.includes(n)?(e.plusReps||e.reps):e.reps}" inputmode="numeric" placeholder="reps">
     </div>`).join('');
+  const durMins=s.duration?Math.round(s.duration/60):'';
   document.getElementById('editContent').innerHTML=`
     <div class="modal-title">Edit Session</div>
     <div class="modal-sub">${prog?`Day ${s.day} — ${prog.label}`:''} · ${fmtDate(s.date)}</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;padding:10px 12px;background:var(--bg3);border-radius:var(--r-sm)">
+      <div style="font-size:12px;color:var(--text2);flex:1">Duration (minutes)</div>
+      <input class="edit-in" type="number" id="editDurIn" value="${durMins}" placeholder="0" inputmode="numeric" style="width:70px">
+      <div style="font-size:11px;color:var(--text3)">min</div>
+    </div>
     <div style="margin-bottom:16px">${rows}</div>
     <div style="display:flex;gap:8px">
       <button class="btn-cancel" style="flex:1" onclick="closeEditModal()">Cancel</button>
@@ -1423,6 +1493,8 @@ function closeEditModal(e){if(e&&e.target!==document.getElementById('editModal')
 function saveEdit(){
   if(editIdx===null)return;
   const s=S.sessions[editIdx];
+  const durMins=parseInt(document.getElementById('editDurIn')?.value)||0;
+  s.duration=durMins>0?durMins*60:0;
   document.querySelectorAll('#editContent [data-ex]').forEach(inp=>{
     const n=inp.dataset.ex,f=inp.dataset.f;
     if(!s.exercises[n])s.exercises[n]={};
