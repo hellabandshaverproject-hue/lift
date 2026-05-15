@@ -248,24 +248,25 @@ canvas{display:block;width:100%}
 <div class="pages">
 
   <!-- TODAY -->
-  <div class="page active" id="page-today">
-    <div id="installBanner" style="display:none" class="install-banner">
-      <div class="install-text">Add to Home Screen for best experience</div>
-      <button class="install-btn-sm" id="installBtn">Install</button>
-      <button class="dismiss-install" onclick="dismissInstall()">✕</button>
+  <div class="page active" id="page-today" style="padding:0;display:flex;flex-direction:column;overflow:hidden">
+    <div style="flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch;">
+      <div id="installBanner" style="display:none" class="install-banner">
+        <div class="install-text">Add to Home Screen for best experience</div>
+        <button class="install-btn-sm" id="installBtn">Install</button>
+        <button class="dismiss-install" onclick="dismissInstall()">✕</button>
+      </div>
+      <div id="lastSessBanner" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 12px;margin-bottom:10px;display:none;align-items:center;justify-content:space-between">
+        <div style="font-size:12px;color:var(--text2)">Last session summary</div>
+        <button onclick="reopenSummary()" style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'DM Sans',sans-serif">View</button>
+      </div>
+      <div class="section-label">Select Day</div>
+      <div class="day-selector" id="daySelector"></div>
+      <div id="workoutArea"></div>
     </div>
-    <div id="lastSessBanner" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 12px;margin-bottom:10px;display:none;align-items:center;justify-content:space-between">
-      <div style="font-size:12px;color:var(--text2)">Last session summary</div>
-      <button onclick="reopenSummary()" style="background:var(--accent-dim);border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'DM Sans',sans-serif">View</button>
-    </div>
-    <div class="section-label">Select Day</div>
-    <div class="day-selector" id="daySelector"></div>
-    <div id="workoutArea" style="padding-bottom:60px"></div>
-    <div id="startSessionWrap" style="position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:10px 14px;display:flex;">
-      <div style="position:absolute;top:-40px;left:0;right:0;height:40px;background:linear-gradient(to bottom,transparent,var(--bg));pointer-events:none"></div>
+    <div id="startSessionWrap" style="background:var(--bg);border-top:1px solid var(--border);padding:10px 14px;display:flex;flex-shrink:0">
       <button onclick="startSession()" style="width:100%;background:var(--accent);border:none;border-radius:var(--r-sm);color:#0d160d;font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;padding:11px;cursor:pointer;letter-spacing:.5px">▶ Start Session</button>
     </div>
-    <div id="sessionBar" class="session-bar" style="display:none">
+    <div id="sessionBar" class="session-bar" style="display:none;flex-shrink:0">
       <textarea class="note-input" id="sessionNote" placeholder="Note…" rows="1" style="flex:1;min-width:0;font-size:12px"></textarea>
       <button class="finish-btn" onclick="finishSession()" style="padding:0 22px;font-size:15px;height:44px;flex-shrink:0">Done ✓</button>
       <button onclick="cancelSession()" style="background:var(--red-dim);border:1px solid var(--red);border-radius:var(--r-sm);color:var(--red);font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;padding:0 10px;height:44px;cursor:pointer;flex-shrink:0">✕</button>
@@ -625,6 +626,8 @@ function startSession(){
   S.sessionStart=Date.now();
   localStorage.setItem('lv3_sessionStart',S.sessionStart);
   document.getElementById('sessionNote').value='';
+  const doneBtn=document.querySelector('.finish-btn');
+  if(doneBtn)doneBtn.disabled=false;
   startTimer();save();renderDaySelector();renderWorkout();
 }
 
@@ -783,30 +786,30 @@ function openLog(name,sets,dr,ds){
             <div class="adj" onclick="adjW(2.5)">+</div>
           </div>
         </div>
-        <div style="display:flex;gap:10px">
-          <div class="input-group" style="flex:1">
-            <div class="input-label">Working Sets</div>
-            <div class="num-row">
-              <div class="adj" onclick="adjWorkSets(-1)" style="font-size:18px">−</div>
-              <input class="num-in secondary" type="number" id="workSetsIn" inputmode="numeric" value="${workSets}" style="font-size:28px">
-              <div class="adj" onclick="adjWorkSets(1)" style="font-size:18px">+</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="input-group">
+            <div class="input-label">Working Sets × Reps</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="num-row" style="flex:1">
+                <div class="adj" onclick="adjWorkSets(-1)" style="font-size:18px">−</div>
+                <input class="num-in secondary" type="number" id="workSetsIn" inputmode="numeric" value="${workSets}" style="font-size:28px">
+                <div class="adj" onclick="adjWorkSets(1)" style="font-size:18px">+</div>
+              </div>
+              <div style="font-size:16px;color:var(--text3);flex-shrink:0">×</div>
+              <div class="num-row" style="flex:1">
+                <div class="adj" onclick="adjWorkReps(-1)" style="font-size:18px">−</div>
+                <input class="num-in secondary" type="number" id="workRepsIn" inputmode="numeric" value="${workReps}" style="font-size:28px">
+                <div class="adj" onclick="adjWorkReps(1)" style="font-size:18px">+</div>
+              </div>
             </div>
           </div>
-          <div class="input-group" style="flex:1">
-            <div class="input-label">Reps Each</div>
+          <div class="input-group">
+            <div class="input-label">Plus Set Reps (AMRAP) — 0 to skip</div>
             <div class="num-row">
-              <div class="adj" onclick="adjWorkReps(-1)" style="font-size:18px">−</div>
-              <input class="num-in secondary" type="number" id="workRepsIn" inputmode="numeric" value="${workReps}" style="font-size:28px">
-              <div class="adj" onclick="adjWorkReps(1)" style="font-size:18px">+</div>
+              <div class="adj" onclick="adjPlus(-1)">−</div>
+              <input class="num-in secondary" type="number" id="plusRepsIn" inputmode="numeric" value="${plusR??''}" style="font-size:36px" placeholder="—">
+              <div class="adj" onclick="adjPlus(1)">+</div>
             </div>
-          </div>
-        </div>
-        <div class="input-group">
-          <div class="input-label">Plus Set Reps (AMRAP) — optional</div>
-          <div class="num-row">
-            <div class="adj" onclick="adjPlus(-1)">−</div>
-            <input class="num-in secondary" type="number" id="plusRepsIn" inputmode="numeric" value="${plusR}" style="font-size:36px" placeholder="—">
-            <div class="adj" onclick="adjPlus(1)">+</div>
           </div>
         </div>
       </div>`;
@@ -845,7 +848,7 @@ function closeLogModal(e){if(e&&e.target!==document.getElementById('logModal'))r
 function adjW(d){const i=document.getElementById('wIn')||document.getElementById('wIn2');if(i)i.value=Math.max(0,Math.round(((parseFloat(i.value)||0)+d)*4)/4);}
 function adjR(d){const i=document.getElementById('rIn');if(i)i.value=Math.max(1,(parseInt(i.value)||0)+d);}
 function adjS(d){const i=document.getElementById('sIn');if(i)i.value=Math.max(1,(parseInt(i.value)||0)+d);}
-function adjPlus(d){const i=document.getElementById('plusRepsIn');if(i)i.value=Math.max(1,(parseInt(i.value)||0)+d);}
+function adjPlus(d){const i=document.getElementById('plusRepsIn');if(i)i.value=Math.max(0,(parseInt(i.value)||0)+d);}
 function adjWorkSets(d){const i=document.getElementById('workSetsIn');if(i)i.value=Math.max(1,(parseInt(i.value)||0)+d);}
 function adjWorkReps(d){const i=document.getElementById('workRepsIn');if(i)i.value=Math.max(1,(parseInt(i.value)||0)+d);}
 function setW(w){const i=document.getElementById('wIn')||document.getElementById('wIn2');if(i)i.value=w;}
@@ -856,11 +859,11 @@ function confirmLog(){
   if(!w||w<=0){showToast('Enter a valid weight');return;}
   if(!modalEx)return;
   if(isMain){
-    const plusR=parseInt(document.getElementById('plusRepsIn')?.value)||null;
+    const plusRaw=parseInt(document.getElementById('plusRepsIn')?.value);
+    const plusR=isNaN(plusRaw)||plusRaw<=0?null:plusRaw;
     const workSets=parseInt(document.getElementById('workSetsIn')?.value)||2;
     const workReps=parseInt(document.getElementById('workRepsIn')?.value)||5;
-    // 1RM uses plusReps if available, else workReps
-    S.cur[modalEx]={weight:w,reps:workReps,sets:workSets,workSets,workReps,plusReps:plusR||undefined};
+    S.cur[modalEx]={weight:w,reps:workReps,sets:workSets,workSets,workReps,plusReps:plusR};
   } else {
     const rRaw=(document.getElementById('rIn')?.value||'').trim();
     const st=parseInt(document.getElementById('sIn')?.value)||3;
@@ -871,12 +874,11 @@ function confirmLog(){
     else if(parts.length===1) repsDisplay=String(parts[0]);
     S.cur[modalEx]={weight:w,reps:repsDisplay,sets:st};
   }
+  const loggedEx=modalEx;
   document.getElementById('logModal').classList.remove('open');modalEx=null;
-  // Big 3 PR check
-  if(isMain&&isPR(modalEx,w)){
-    showPRToast(modalEx,w);
-  }
-  save();renderWorkout();if(!isMain)showToast('Logged ✓');
+  if(isMain&&isPR(loggedEx,w)){showPRToast(loggedEx,w);}
+  else if(!isMain)showToast('Logged ✓');
+  save();renderWorkout();
 }
 
 function cancelSession(){
@@ -1042,7 +1044,9 @@ function buildSessionCanvas(ses){
   // EXERCISES
   exEntries.forEach(([name,ex],idx)=>{
     const isBig3=BIG3.includes(name);
-    const repStr=isBig3?`2×5 + ${ex.plusReps||ex.reps}`:`${ex.sets||3}×${ex.reps}`;
+    const repStr=isBig3
+      ?`${ex.workSets||2}×${ex.workReps||5}${ex.plusReps?` + ${ex.plusReps}`:''}`
+      :`${ex.sets||3}×${ex.reps}`;
 
     // Big 3 row tint
     if(isBig3){
@@ -1466,13 +1470,36 @@ function delSession(i){
 function openEdit(i){
   editIdx=i;const s=S.sessions[i];
   const prog=PROG.find(d=>d.day===s.day);
-  const rows=Object.entries(s.exercises).map(([n,e])=>`
-    <div class="edit-ex-row">
+  const rows=Object.entries(s.exercises).map(([n,e])=>{
+    const isBig3=BIG3.includes(n);
+    if(isBig3){
+      return`<div style="margin-bottom:10px;padding:10px;background:var(--bg3);border-radius:var(--r-sm)">
+        <div style="font-size:12px;font-weight:600;color:var(--accent);margin-bottom:8px">${n}</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span style="font-size:11px;color:var(--text3);width:60px">Weight</span>
+          <input class="edit-in" type="number" data-ex="${n}" data-f="weight" value="${e.weight}" inputmode="decimal" style="flex:1">
+          <span style="font-size:11px;color:var(--text3)">kg</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <span style="font-size:11px;color:var(--text3);width:60px">Sets×Reps</span>
+          <input class="edit-in" type="number" data-ex="${n}" data-f="workSets" value="${e.workSets||2}" inputmode="numeric" style="width:50px">
+          <span style="font-size:11px;color:var(--text3)">×</span>
+          <input class="edit-in" type="number" data-ex="${n}" data-f="workReps" value="${e.workReps||5}" inputmode="numeric" style="width:50px">
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:11px;color:var(--text3);width:60px">AMRAP</span>
+          <input class="edit-in" type="number" data-ex="${n}" data-f="plusReps" value="${e.plusReps||''}" inputmode="numeric" style="width:50px" placeholder="—">
+          <span style="font-size:11px;color:var(--text3)">(0 to skip)</span>
+        </div>
+      </div>`;
+    }
+    return`<div class="edit-ex-row">
       <div class="edit-ex-name">${n}</div>
       <input class="edit-in" type="number" data-ex="${n}" data-f="weight" value="${e.weight}" inputmode="decimal">
       <span style="font-size:11px;color:var(--text3)">kg ×</span>
-      <input class="edit-reps-in" type="text" data-ex="${n}" data-f="reps" value="${BIG3.includes(n)?(e.plusReps||e.reps):e.reps}" inputmode="numeric" placeholder="reps">
-    </div>`).join('');
+      <input class="edit-reps-in" type="text" data-ex="${n}" data-f="reps" value="${e.reps}" inputmode="numeric" placeholder="reps">
+    </div>`;
+  }).join('');
   const durMins=s.duration?Math.round(s.duration/60):'';
   document.getElementById('editContent').innerHTML=`
     <div class="modal-title">Edit Session</div>
@@ -1499,10 +1526,10 @@ function saveEdit(){
     const n=inp.dataset.ex,f=inp.dataset.f;
     if(!s.exercises[n])s.exercises[n]={};
     if(f==='weight') s.exercises[n][f]=parseFloat(inp.value)||0;
-    else if(f==='reps'){
-      if(BIG3.includes(n)) s.exercises[n].plusReps=parseInt(inp.value)||5;
-      else s.exercises[n][f]=inp.value;
-    }
+    else if(f==='workSets') s.exercises[n].workSets=parseInt(inp.value)||2;
+    else if(f==='workReps') s.exercises[n].workReps=parseInt(inp.value)||5;
+    else if(f==='plusReps'){const v=parseInt(inp.value);s.exercises[n].plusReps=isNaN(v)||v<=0?null:v;}
+    else s.exercises[n][f]=inp.value;
   });
   s.volume=calcVol(s.exercises);save();closeEditModal();renderHistory();showToast('Updated ✓');
 }
