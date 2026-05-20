@@ -219,6 +219,10 @@ canvas{display:block;width:100%}
 .pr-emoji{font-size:48px;margin-bottom:8px}
 .pr-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--yellow);margin-bottom:4px}
 .pr-sub{font-size:14px;color:var(--text2)}
+.sub-overlay{position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:150;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.sub-overlay.open{opacity:1;pointer-events:all}
+.sub-sheet{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;padding:20px 18px 40px;width:100%;max-width:480px;transform:translateY(100%);transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.sub-overlay.open .sub-sheet{transform:translateY(0)}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:8px 18px;font-size:13px;color:var(--text);opacity:0;transition:all .25s;z-index:300;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .empty{text-align:center;padding:40px 24px;color:var(--text3)}
@@ -233,7 +237,7 @@ canvas{display:block;width:100%}
 
 <div class="header">
   <div class="logo">LIFT</div>
-  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.7</div>
+  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.8</div>
   <div class="header-right">
     <div class="header-streak">🔥 <span class="streak-val" id="streakVal">0</span> wk</div>
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
@@ -249,7 +253,7 @@ canvas{display:block;width:100%}
 
   <!-- TODAY -->
   <div class="page active" id="page-today" style="padding:0;display:flex;flex-direction:column;overflow:hidden">
-    <div style="flex:1;overflow-y:auto;padding:14px;padding-bottom:20px;-webkit-overflow-scrolling:touch;position:relative;">
+    <div style="flex:1;overflow-y:auto;padding:14px;padding-bottom:116px;-webkit-overflow-scrolling:touch;position:relative;">
       <div id="installBanner" style="display:none" class="install-banner">
         <div class="install-text">Add to Home Screen for best experience</div>
         <button class="install-btn-sm" id="installBtn">Install</button>
@@ -432,6 +436,12 @@ canvas{display:block;width:100%}
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="sub-overlay" id="subSheetOverlay" onclick="if(event.target===this)closeSubSheet()">
+  <div class="sub-sheet">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--text);margin-bottom:14px">Exercise Options</div>
+    <div id="subSheetContent"></div>
+  </div>
+</div>
 <div class="pr-overlay" id="prOverlay">
   <div class="pr-box">
     <div class="pr-emoji">🏆</div>
@@ -628,7 +638,7 @@ function selectDay(day){
 function startSession(){
   S.activeDay=S.selectedDay;
   S.sessionActive=true;
-  S.cur={};S.skipped=new Set();
+  S.cur={};S.skipped=new Set();S._substitutes={};
   S.sessionStart=Date.now();
   localStorage.setItem('lv3_sessionStart',S.sessionStart);
   document.getElementById('sessionNote').value='';
@@ -748,6 +758,46 @@ function renderWorkout(){
 
   document.getElementById('workoutArea').innerHTML=html;
   if(isActiveDayViewing&&S.sessionStart)startTimer();
+
+  // Attach long press to exercise names
+  if(isActiveDayViewing){
+    prog.exercises.forEach(ex=>{
+      const sk=S.skipped.has(ex.name);
+      if(!sk){
+        const rows=document.getElementById('workoutArea').querySelectorAll('.ex-name');
+        rows.forEach(el=>{
+          if(el.textContent===ex.name){
+            attachLongPress(el,ex.name,ex.sets,ex.dr||5,ex.ds||3);
+            el.style.cursor='pointer';
+          }
+        });
+      }
+    });
+
+    // Render any substituted exercises
+    if(S._substitutes){
+      Object.entries(S._substitutes).forEach(([subName,info])=>{
+        if(!S.skipped.has(info.originalName))return;
+        const cur=S.cur[subName];
+        const last=getLastLog(subName);
+        const dW=cur?cur.weight:(last?last.weight:null);
+        const dR=cur?cur.reps:(last?last.reps:null);
+        const pillStr=dW?`${dW}kg · ${cur?.sets||info.ds||3}× · ${dR}`:'';
+        const nm=subName.replace(/'/g,"\\'");
+        const subHtml=`<div class="ex-row" id="sub-${nm}">
+          <div class="ex-info">
+            <div class="ex-name" style="color:var(--accent)">⇄ ${subName}</div>
+            <div class="ex-sets">${info.sets} <span style="font-size:9px;color:var(--text3)">(sub for ${info.originalName})</span></div>
+          </div>
+          ${pillStr?`<div style="background:var(--text);color:var(--bg);font-size:10px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0">${pillStr}</div>`:''}
+          <button class="${cur?'log-btn logged':'log-btn'}" onclick="openLog('${nm}','${info.sets}',${info.dr||5},${info.ds||3})">
+            ${cur?cur.weight+'kg':'Log'}
+          </button>
+        </div>`;
+        document.getElementById('workoutArea').insertAdjacentHTML('beforeend',subHtml);
+      });
+    }
+  }
 
   // Show/hide session bar and start button
   const bar=document.getElementById('sessionBar');
@@ -895,7 +945,7 @@ function cancelSession(){
     {label:'Keep going',cls:'btn-cancel',action:closeConfirm},
     {label:'Cancel session',cls:'btn-del',action:()=>{
       closeConfirm();
-      S.cur={};S.skipped=new Set();S.sessionStart=null;S.sessionActive=false;S.activeDay=null;
+      S.cur={};S.skipped=new Set();S._substitutes={};S.sessionStart=null;S.sessionActive=false;S.activeDay=null;
       localStorage.removeItem('lv3_sessionStart');localStorage.removeItem('lv3_cur');
       if(timerIv)clearInterval(timerIv);
       save();renderDaySelector();renderWorkout();showToast('Session cancelled');
@@ -926,8 +976,7 @@ function doFinish(){
   const prev=[...S.sessions].reverse().slice(1).find(s=>s.day===(S.activeDay||S.selectedDay));
   const rating=rateSession(ses,prev);
   localStorage.setItem('lv3_lastSummary',JSON.stringify({ses,rating}));
-  S.cur={};S.skipped=new Set();S.sessionStart=null;S.sessionActive=false;S.activeDay=null;
-  localStorage.removeItem('lv3_sessionStart');
+  S.cur={};S.skipped=new Set();S._substitutes={};S.sessionStart=null;S.sessionActive=false;S.activeDay=null;
   localStorage.removeItem('lv3_cur');
   if(timerIv){clearInterval(timerIv);timerIv=null;}
   document.getElementById('sessionNote').value='';
@@ -1658,7 +1707,65 @@ function importData(e){
   e.target.value='';
 }
 
-// ── STREAK ──
+// ── SUBSTITUTES ──
+const SUBS={
+  'Cable Rear Delt Fly':['Rear Delt Pec Deck'],
+  'Rear Delt Pec Deck':['Cable Rear Delt Fly'],
+  'Straight Arm Pulldown':['Cable Row'],
+  'Cable Row':['Straight Arm Pulldown'],
+  'Barbell Incline Press':['Smith Incline Press'],
+  'Smith Incline Press':['Barbell Incline Press'],
+};
+
+let longPressTimer=null;
+let longPressTarget=null;
+
+function attachLongPress(el,name,sets,dr,ds){
+  el.addEventListener('touchstart',e=>{
+    longPressTarget=name;
+    longPressTimer=setTimeout(()=>{
+      openSubSheet(name,sets,dr,ds);
+    },500);
+  },{passive:true});
+  el.addEventListener('touchmove',()=>{
+    clearTimeout(longPressTimer);
+  },{passive:true});
+  el.addEventListener('touchend',()=>{
+    clearTimeout(longPressTimer);
+  },{passive:true});
+}
+
+function openSubSheet(name,sets,dr,ds){
+  const subs=SUBS[name]||[];
+  const nm=name.replace(/'/g,"\\'");
+  document.getElementById('subSheetContent').innerHTML=`
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:14px;letter-spacing:.5px;text-transform:uppercase">Long pressed: ${name}</div>
+    ${subs.length?subs.map(s=>`
+      <button onclick="substituteEx('${nm}','${s.replace(/'/g,"\\'")}','${sets}',${dr},${ds})" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:14px;cursor:pointer;margin-bottom:8px;text-align:left">
+        ⇄ Substitute with <strong>${s}</strong>
+      </button>`).join(''):'<div style="font-size:13px;color:var(--text3);text-align:center">No substitutes available</div>'}
+    <button onclick="skipEx('${nm}');closeSubSheet();" style="width:100%;background:var(--red-dim);border:1px solid var(--red);border-radius:var(--r-sm);color:var(--red);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:14px;cursor:pointer;margin-top:4px">Skip this exercise</button>
+    <button onclick="closeSubSheet()" style="width:100%;background:none;border:none;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:13px;padding:12px;cursor:pointer;margin-top:4px">Cancel</button>`;
+  document.getElementById('subSheetOverlay').classList.add('open');
+}
+
+function closeSubSheet(){
+  document.getElementById('subSheetOverlay').classList.remove('open');
+}
+
+function substituteEx(originalName,subName,sets,dr,ds){
+  // Remove original from current session if logged
+  if(S.cur[originalName])delete S.cur[originalName];
+  // Add substitute to skipped so original disappears
+  S.skipped.add(originalName);
+  // Store sub info so it renders as a new exercise
+  S._substitutes=S._substitutes||{};
+  S._substitutes[subName]={originalName,sets,dr,ds};
+  closeSubSheet();
+  save();renderWorkout();
+  // Auto open log modal for substitute
+  setTimeout(()=>openLog(subName,sets,dr||5,ds||3),300);
+}
 function updateStreak(){document.getElementById('streakVal').textContent=calcStreak();}
 
 // ── PR TOAST ──
