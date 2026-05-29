@@ -237,7 +237,7 @@ canvas{display:block;width:100%}
 
 <div class="header">
   <div class="logo">LIFT</div>
-  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.8</div>
+  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.9</div>
   <div class="header-right">
     <div class="header-streak">🔥 <span class="streak-val" id="streakVal">0</span> wk</div>
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
@@ -463,12 +463,10 @@ const PROG=[
     {name:"Cable Rear Delt Fly",sets:"3×12-15",dr:13,ds:3},
   ]},
   {day:2,label:"Squat",exercises:[
-    {name:"Jump Squat",sets:"4×5",dr:5,ds:4},
     {name:"Barbell Squat",sets:"2×5 1×5+",main:true,dr:5,ds:3},
     {name:"Bulgarian Split Squat",sets:"3×6-8",dr:7,ds:3},
     {name:"Hamstring Curl",sets:"3×10-12",dr:11,ds:3},
-    {name:"Cable Crunch",sets:"3×15-20",dr:17,ds:3},
-    {name:"Hanging Leg Raise",sets:"3×10-15",dr:12,ds:3},
+    {name:"Cable Crunch",sets:"3×12-15",dr:13,ds:3},
   ]},
   {day:3,label:"Aesthetic",exercises:[
     {name:"Cable Lateral Raise",sets:"4×12-13",dr:12,ds:4},
@@ -482,11 +480,9 @@ const PROG=[
   ]},
   {day:4,label:"Deadlift",exercises:[
     {name:"Conventional Deadlift",sets:"2×5 1×5+",main:true,dr:5,ds:3},
-    {name:"Bulgarian Split Squat",sets:"3×6-8",dr:7,ds:3},
-    {name:"Romanian Deadlift DB",sets:"3×6-8",dr:7,ds:3},
-    {name:"Hamstring Curl",sets:"3×10-12",dr:11,ds:3},
-    {name:"Cable Crunch",sets:"3×15-20",dr:17,ds:3},
-    {name:"Hanging Leg Raise",sets:"3×10-15",dr:12,ds:3},
+    {name:"Romanian Deadlift DB",sets:"3×8-10",dr:9,ds:3},
+    {name:"Leg Press",sets:"3×10-12",dr:11,ds:3},
+    {name:"Heavy Suitcase Carry (30m)",sets:"3×1",dr:1,ds:3},
   ]},
   {day:5,label:"Upper+",exercises:[
     {name:"Barbell Incline Press",sets:"3×6-8",dr:7,ds:3},
@@ -499,7 +495,7 @@ const PROG=[
 ];
 
 const BIG3=["Flat Bench Press","Barbell Squat","Conventional Deadlift"];
-const ALL_EX=[...new Set(PROG.flatMap(d=>d.exercises.map(e=>e.name)))];
+const ALL_EX=[...BIG3,...[...new Set(PROG.flatMap(d=>d.exercises.map(e=>e.name)))].filter(n=>!BIG3.includes(n)).sort()];
 
 // ── STATE ──
 let S={selectedDay:1,activeDay:null,sessionActive:false,sessionStart:null,cur:{},skipped:new Set(),sessions:[],bws:[],prefs:{theme:'dark',dismissedInstall:false}};
@@ -556,7 +552,7 @@ function daysSince(iso){
   return Math.round((nowDate-thenDate)/(864e5));
 }
 function lastDayDate(day){for(let i=S.sessions.length-1;i>=0;i--)if(S.sessions[i].day===day)return S.sessions[i].date;return null;}
-function calcVol(exs){let t=0;Object.values(exs).forEach(e=>t+=(e.weight||0)*parseLowestRep(e.reps)*(e.sets||3));return Math.round(t);}
+function calcVol(exs){let t=0;Object.values(exs).forEach(e=>{const s=e.sets||3;const hi=parseTopRep(e.reps);const lo=parseLowestRep(e.reps);t+=(e.weight||0)*(hi*1+lo*Math.max(s-1,0));});return Math.round(t);}
 function isoWeek(d){const j=new Date(d.getFullYear(),0,1);return Math.ceil(((d-j)/864e5+j.getDay()+1)/7);}
 function calcStreak(){
   const weeks=new Set();
@@ -1715,31 +1711,24 @@ const SUBS={
   'Cable Row':['Straight Arm Pulldown'],
   'Barbell Incline Press':['Smith Incline Press'],
   'Smith Incline Press':['Barbell Incline Press'],
+  'Bulgarian Split Squat':['Leg Press'],
+  'Leg Press':['Bulgarian Split Squat'],
+  'Cable Crunch':['Heavy Suitcase Carry (30m)'],
+  'Heavy Suitcase Carry (30m)':['Cable Crunch'],
 };
 
-let longPressTimer=null;
-let longPressTarget=null;
-
 function attachLongPress(el,name,sets,dr,ds){
-  el.addEventListener('touchstart',e=>{
-    longPressTarget=name;
-    longPressTimer=setTimeout(()=>{
-      openSubSheet(name,sets,dr,ds);
-    },500);
-  },{passive:true});
-  el.addEventListener('touchmove',()=>{
-    clearTimeout(longPressTimer);
-  },{passive:true});
-  el.addEventListener('touchend',()=>{
-    clearTimeout(longPressTimer);
-  },{passive:true});
+  el.addEventListener('click',e=>{
+    e.stopPropagation();
+    openSubSheet(name,sets,dr,ds);
+  });
 }
 
 function openSubSheet(name,sets,dr,ds){
   const subs=SUBS[name]||[];
   const nm=name.replace(/'/g,"\\'");
   document.getElementById('subSheetContent').innerHTML=`
-    <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:14px;letter-spacing:.5px;text-transform:uppercase">Long pressed: ${name}</div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:14px;letter-spacing:.5px;text-transform:uppercase">${name}</div>
     ${subs.length?subs.map(s=>`
       <button onclick="substituteEx('${nm}','${s.replace(/'/g,"\\'")}','${sets}',${dr},${ds})" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:14px;cursor:pointer;margin-bottom:8px;text-align:left">
         ⇄ Substitute with <strong>${s}</strong>
