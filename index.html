@@ -237,7 +237,7 @@ canvas{display:block;width:100%}
 
 <div class="header">
   <div class="logo">LIFT</div>
-  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.9</div>
+  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.10</div>
   <div class="header-right">
     <div class="header-streak">🔥 <span class="streak-val" id="streakVal">0</span> wk</div>
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
@@ -455,12 +455,11 @@ canvas{display:block;width:100%}
 const PROG=[
   {day:1,label:"Bench",exercises:[
     {name:"Flat Bench Press",sets:"2×5 1×5+",main:true,dr:5,ds:3},
-    {name:"Barbell Incline Press",sets:"3×8-10",dr:9,ds:3},
-    {name:"Dips",sets:"3×10-15",dr:12,ds:3},
+    {name:"Vertical Chest Press",sets:"3×10-12",dr:11,ds:3},
     {name:"Pull-ups",sets:"3×5-7",dr:6,ds:3},
-    {name:"Straight Arm Pulldown",sets:"3×8-10",dr:9,ds:3},
+    {name:"Cable Row",sets:"3×8-10",dr:9,ds:3,tag:"wide pronated"},
     {name:"Cable Lateral Raise",sets:"3×10-12",dr:11,ds:3},
-    {name:"Cable Rear Delt Fly",sets:"3×12-15",dr:13,ds:3},
+    {name:"Rear Delt Pec Deck",sets:"3×15-20",dr:17,ds:3},
   ]},
   {day:2,label:"Squat",exercises:[
     {name:"Barbell Squat",sets:"2×5 1×5+",main:true,dr:5,ds:3},
@@ -473,10 +472,10 @@ const PROG=[
     {name:"DB Lateral Raise",sets:"3×12-15",dr:13,ds:3},
     {name:"Smith Incline Press",sets:"3×10-12",dr:11,ds:3},
     {name:"Machine OHP",sets:"3×10-12",dr:11,ds:3},
-    {name:"DB Curl",sets:"2×10-12",dr:11,ds:2},
     {name:"Pull-ups",sets:"3×5-7",dr:6,ds:3},
-    {name:"Straight Arm Pulldown",sets:"3×10-12",dr:11,ds:3},
-    {name:"Cable Rear Delt Fly",sets:"3×15-20",dr:17,ds:3},
+    {name:"Cable Row",sets:"3×10-12",dr:11,ds:3,tag:"wide pronated"},
+    {name:"DB Curl",sets:"2×10-12",dr:11,ds:2},
+    {name:"Cable Rear Delt Fly",sets:"3×12-15",dr:13,ds:3},
   ]},
   {day:4,label:"Deadlift",exercises:[
     {name:"Conventional Deadlift",sets:"2×5 1×5+",main:true,dr:5,ds:3},
@@ -485,12 +484,13 @@ const PROG=[
     {name:"Heavy Suitcase Carry (30m)",sets:"3×1",dr:1,ds:3},
   ]},
   {day:5,label:"Upper+",exercises:[
-    {name:"Barbell Incline Press",sets:"3×6-8",dr:7,ds:3},
-    {name:"Machine OHP",sets:"3×8-10",dr:9,ds:3},
-    {name:"Dips",sets:"3×10-15",dr:12,ds:3},
+    {name:"Vertical Chest Press",sets:"3×10-12",dr:11,ds:3},
+    {name:"Pec Deck",sets:"3×12-15",dr:13,ds:3},
+    {name:"Machine OHP",sets:"3×10-12",dr:11,ds:3},
     {name:"Pull-ups",sets:"4×5-7",dr:6,ds:4},
-    {name:"Cable Row",sets:"3×10-12",dr:11,ds:3},
+    {name:"Cable Row",sets:"3×10-12",dr:11,ds:3,tag:"wide pronated"},
     {name:"Cable Lateral Raise",sets:"3×10-12",dr:11,ds:3},
+    {name:"Rear Delt Pec Deck",sets:"3×15-20",dr:17,ds:3},
   ]},
 ];
 
@@ -723,7 +723,7 @@ function renderWorkout(){
         : '';
       html+=`<div class="ex-row ${sk?'ex-skipped':''}">
         <div class="ex-info">
-          <div class="ex-name">${ex.name}</div>
+          <div class="ex-name" data-exname="${ex.name}">${ex.name}${ex.tag?`<span style="font-weight:400;font-size:12px;color:var(--text3)"> (${ex.tag})</span>`:''}</div>
           <div class="ex-sets">${ex.sets}</div>
           ${flags?`<div class="ex-flags">${flags}</div>`:''}
         </div>
@@ -743,7 +743,7 @@ function renderWorkout(){
         : '';
       html+=`<div class="ex-row" style="opacity:0.7">
         <div class="ex-info">
-          <div class="ex-name">${ex.name}</div>
+          <div class="ex-name" data-exname="${ex.name}">${ex.name}${ex.tag?`<span style="font-weight:400;font-size:12px;color:var(--text3)"> (${ex.tag})</span>`:''}</div>
           <div class="ex-sets">${ex.sets}</div>
           ${flags?`<div class="ex-flags">${flags}</div>`:''}
         </div>
@@ -762,7 +762,7 @@ function renderWorkout(){
       if(!sk){
         const rows=document.getElementById('workoutArea').querySelectorAll('.ex-name');
         rows.forEach(el=>{
-          if(el.textContent===ex.name){
+          if(el.dataset.exname===ex.name){
             attachLongPress(el,ex.name,ex.sets,ex.dr||5,ex.ds||3);
             el.style.cursor='pointer';
           }
@@ -1709,8 +1709,9 @@ const SUBS={
   'Rear Delt Pec Deck':['Cable Rear Delt Fly'],
   'Straight Arm Pulldown':['Cable Row'],
   'Cable Row':['Straight Arm Pulldown'],
-  'Barbell Incline Press':['Smith Incline Press'],
-  'Smith Incline Press':['Barbell Incline Press'],
+  'Barbell Incline Press':['Smith Incline Press','Chest Press (Vertical)'],
+  'Smith Incline Press':['Barbell Incline Press','Chest Press (Vertical)'],
+  'Chest Press (Vertical)':['Smith Incline Press','Barbell Incline Press'],
   'Bulgarian Split Squat':['Leg Press'],
   'Leg Press':['Bulgarian Split Squat'],
   'Cable Crunch':['Heavy Suitcase Carry (30m)'],
