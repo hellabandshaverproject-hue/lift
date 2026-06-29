@@ -237,7 +237,7 @@ canvas{display:block;width:100%}
 
 <div class="header">
   <div class="logo">LIFT</div>
-  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.10</div>
+  <div style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:.5px;margin-top:2px">v1.5.11</div>
   <div class="header-right">
     <div class="header-streak">🔥 <span class="streak-val" id="streakVal">0</span> wk</div>
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
@@ -442,6 +442,13 @@ canvas{display:block;width:100%}
     <div id="subSheetContent"></div>
   </div>
 </div>
+<div class="sub-overlay" id="addExOverlay" onclick="if(event.target===this)closeAddExSheet()">
+  <div class="sub-sheet" style="max-height:70vh;display:flex;flex-direction:column">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--text);margin-bottom:12px;flex-shrink:0">Add Exercise</div>
+    <div id="addExList" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:6px"></div>
+    <button onclick="closeAddExSheet()" style="margin-top:14px;flex-shrink:0;width:100%;background:none;border:none;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px;cursor:pointer">Cancel</button>
+  </div>
+</div>
 <div class="pr-overlay" id="prOverlay">
   <div class="pr-box">
     <div class="pr-emoji">🏆</div>
@@ -494,11 +501,11 @@ const PROG=[
   ]},
 ];
 
-const BIG3=["Flat Bench Press","Barbell Squat","Conventional Deadlift"];
+const BIG3=["Flat Bench Press","Barbell Squat","Conventional Deadlift","Sumo Deadlift"];
 const ALL_EX=[...BIG3,...[...new Set(PROG.flatMap(d=>d.exercises.map(e=>e.name)))].filter(n=>!BIG3.includes(n)).sort()];
 
 // ── STATE ──
-let S={selectedDay:1,activeDay:null,sessionActive:false,sessionStart:null,cur:{},skipped:new Set(),sessions:[],bws:[],prefs:{theme:'dark',dismissedInstall:false}};
+let S={selectedDay:1,activeDay:null,sessionActive:false,sessionStart:null,cur:{},skipped:new Set(),adhoc:[],sessions:[],bws:[],prefs:{theme:'dark',dismissedInstall:false}};
 let modalEx=null,editIdx=null,selEx=ALL_EX[0],timerIv=null,deferredPrompt=null;
 let _cfActions=[];
 
@@ -507,7 +514,7 @@ function save(){
   localStorage.setItem('lv3_s',JSON.stringify(S.sessions));
   localStorage.setItem('lv3_b',JSON.stringify(S.bws));
   localStorage.setItem('lv3_p',JSON.stringify({...S.prefs,selectedDay:S.selectedDay,activeDay:S.activeDay,sessionActive:S.sessionActive}));
-  if(S.sessionActive)localStorage.setItem('lv3_cur',JSON.stringify({cur:S.cur,skipped:[...S.skipped]}));
+  if(S.sessionActive)localStorage.setItem('lv3_cur',JSON.stringify({cur:S.cur,skipped:[...S.skipped],adhoc:S.adhoc||[]}));
 }
 function load(){
   try{
@@ -516,7 +523,7 @@ function load(){
     const p=localStorage.getItem('lv3_p');
     if(p){const pr=JSON.parse(p);S.prefs={...S.prefs,...pr};S.selectedDay=pr.selectedDay||1;S.activeDay=pr.activeDay||null;S.sessionActive=pr.sessionActive||false;}
     const c=localStorage.getItem('lv3_cur');
-    if(c&&S.sessionActive){const cd=JSON.parse(c);S.cur=cd.cur||{};S.skipped=new Set(cd.skipped||[]);}
+    if(c&&S.sessionActive){const cd=JSON.parse(c);S.cur=cd.cur||{};S.skipped=new Set(cd.skipped||[]);S.adhoc=cd.adhoc||[];}
     const st=localStorage.getItem('lv3_sessionStart');
     if(st&&S.sessionActive)S.sessionStart=parseInt(st);
   }catch(e){}
@@ -634,7 +641,7 @@ function selectDay(day){
 function startSession(){
   S.activeDay=S.selectedDay;
   S.sessionActive=true;
-  S.cur={};S.skipped=new Set();S._substitutes={};
+  S.cur={};S.skipped=new Set();S._substitutes={};S.adhoc=[];
   S.sessionStart=Date.now();
   localStorage.setItem('lv3_sessionStart',S.sessionStart);
   document.getElementById('sessionNote').value='';
@@ -793,6 +800,35 @@ function renderWorkout(){
         document.getElementById('workoutArea').insertAdjacentHTML('beforeend',subHtml);
       });
     }
+
+    // Render ad-hoc exercises added this session
+    (S.adhoc||[]).forEach(name=>{
+      const cur=S.cur[name];
+      const last=getLastLog(name);
+      const dW=cur?cur.weight:(last?last.weight:null);
+      const dR=cur?cur.reps:(last?last.reps:null);
+      const isBig3=BIG3.includes(name);
+      const pillStr=dW?(isBig3?`${dW}kg · ${cur?`${cur.workSets||2}×${cur.workReps||5}${cur.plusReps!=null?` + ${cur.plusReps}`:''}`:last?`${last.workSets||2}×${last.workReps||5}`:''}`:`${dW}kg · 3× · ${dR}`):'';
+      const nm=name.replace(/'/g,"\\'");
+      const defSets=isBig3?'2×5 1×5+':'3×8-10';
+      const adhocHtml=`<div class="ex-row" id="adhoc-${nm}" style="border-left:2px solid var(--accent);padding-left:10px">
+        <div class="ex-info">
+          <div class="ex-name" style="color:var(--text)">${name}</div>
+          <div class="ex-sets" style="color:var(--text3);font-size:10px">+ added</div>
+        </div>
+        ${pillStr?`<div style="background:var(--text);color:var(--bg);font-size:10px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0">${pillStr}</div>`:''}
+        <button onclick="undoAddEx('${nm}')" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:5px 10px;cursor:pointer;flex-shrink:0">Undo</button>
+        <button class="${cur?'log-btn logged':'log-btn'}" onclick="openLog('${nm}','${defSets}',5,3)">${cur?cur.weight+'kg':'Log'}</button>
+      </div>`;
+      document.getElementById('workoutArea').insertAdjacentHTML('beforeend',adhocHtml);
+    });
+
+    // Add Exercise button
+    document.getElementById('workoutArea').insertAdjacentHTML('beforeend',
+      `<div style="padding:10px 0 4px">
+        <button onclick="openAddExSheet()" style="width:100%;background:none;border:1px dashed var(--border);border-radius:var(--r-sm);color:var(--text3);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:12px;cursor:pointer;letter-spacing:.2px">＋ Add Exercise</button>
+      </div>`
+    );
   }
 
   // Show/hide session bar and start button
@@ -941,7 +977,7 @@ function cancelSession(){
     {label:'Keep going',cls:'btn-cancel',action:closeConfirm},
     {label:'Cancel session',cls:'btn-del',action:()=>{
       closeConfirm();
-      S.cur={};S.skipped=new Set();S._substitutes={};S.sessionStart=null;S.sessionActive=false;S.activeDay=null;
+      S.cur={};S.skipped=new Set();S._substitutes={};S.adhoc=[];S.sessionStart=null;S.sessionActive=false;S.activeDay=null;
       localStorage.removeItem('lv3_sessionStart');localStorage.removeItem('lv3_cur');
       if(timerIv)clearInterval(timerIv);
       save();renderDaySelector();renderWorkout();showToast('Session cancelled');
@@ -972,7 +1008,7 @@ function doFinish(){
   const prev=[...S.sessions].reverse().slice(1).find(s=>s.day===(S.activeDay||S.selectedDay));
   const rating=rateSession(ses,prev);
   localStorage.setItem('lv3_lastSummary',JSON.stringify({ses,rating}));
-  S.cur={};S.skipped=new Set();S._substitutes={};S.sessionStart=null;S.sessionActive=false;S.activeDay=null;
+  S.cur={};S.skipped=new Set();S._substitutes={};S.adhoc=[];S.sessionStart=null;S.sessionActive=false;S.activeDay=null;
   localStorage.removeItem('lv3_cur');
   if(timerIv){clearInterval(timerIv);timerIv=null;}
   document.getElementById('sessionNote').value='';
@@ -1215,6 +1251,7 @@ function getStrengthLevel(name,weight,bw){
     'Flat Bench Press':    [{l:'Elite',r:1.5},{l:'Advanced',r:1.25},{l:'Intermediate',r:1.0},{l:'Novice',r:0.75},{l:'Beginner',r:0.5}],
     'Barbell Squat':       [{l:'Elite',r:2.5},{l:'Advanced',r:2.0},{l:'Intermediate',r:1.5},{l:'Novice',r:1.25},{l:'Beginner',r:0.75}],
     'Conventional Deadlift':[{l:'Elite',r:3.0},{l:'Advanced',r:2.5},{l:'Intermediate',r:2.0},{l:'Novice',r:1.5},{l:'Beginner',r:1.0}],
+    'Sumo Deadlift':       [{l:'Elite',r:3.0},{l:'Advanced',r:2.5},{l:'Intermediate',r:2.0},{l:'Novice',r:1.5},{l:'Beginner',r:1.0}],
   };
   const tiers=standards[name];
   if(!tiers)return null;
@@ -1229,9 +1266,45 @@ function getLevelColor(level){
 function renderRecords(){
   const el=document.getElementById('recordsCard');
   const lastBW=S.bws.length?S.bws[S.bws.length-1].weight:null;
-  el.innerHTML=BIG3.map((name,idx)=>{
+  const HOF_SLOTS=[
+    {key:'Flat Bench Press'},
+    {key:'Barbell Squat'},
+    {key:'__DEADLIFT__'},
+  ];
+  el.innerHTML=HOF_SLOTS.map((slot,idx)=>{
+    const divider=idx<2?'border-bottom:1px solid var(--border);':'';
+    if(slot.key==='__DEADLIFT__'){
+      const hConv=getHist('Conventional Deadlift'),hSumo=getHist('Sumo Deadlift');
+      const bestConv=hConv.length?hConv.reduce((a,b)=>a.weight>b.weight?a:b):null;
+      const bestSumo=hSumo.length?hSumo.reduce((a,b)=>a.weight>b.weight?a:b):null;
+      if(!bestConv&&!bestSumo)return`<div style="padding:14px 16px">
+        <div style="font-size:13px;font-weight:600;color:var(--text2)">Deadlift</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">No data yet</div>
+      </div>`;
+      const best=(!bestSumo||(bestConv&&bestConv.weight>=bestSumo.weight))?bestConv:bestSumo;
+      const displayName=best===bestConv?'Conventional Deadlift':'Sumo Deadlift';
+      const orm=epley(best.weight,best.plusReps||best.reps||5);
+      const repLabel=best.plusReps?`2×5 + ${best.plusReps}`:`× ${best.reps||5}`;
+      const level=getStrengthLevel(displayName,best.weight,lastBW);
+      const levelColor=getLevelColor(level);
+      return`<div style="padding:14px 16px;display:flex;align-items:center;gap:12px">
+        <div style="width:3px;height:56px;background:var(--accent);border-radius:2px;flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.1px">Deadlift <span style="font-size:11px;color:var(--text3);font-weight:400">${displayName==='Sumo Deadlift'?'(Sumo)':'(Conv.)'}</span></div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+            <div style="font-size:10px;color:var(--text3)">${fmtDate(best.date)}</div>
+            ${level?`<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;background:${levelColor}22;color:${levelColor};letter-spacing:.5px;text-transform:uppercase">${level}</span>`:''}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);letter-spacing:1px;line-height:1">${best.weight}kg ${repLabel}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">est. 1RM <strong style="color:var(--text)">${orm}kg</strong></div>
+        </div>
+      </div>`;
+    }
+    const name=slot.key;
     const h=getHist(name);
-    if(!h.length)return`<div style="padding:14px 16px;border-bottom:${idx<2?'1px solid var(--border)':'none'}">
+    if(!h.length)return`<div style="padding:14px 16px;${divider}">
       <div style="font-size:13px;font-weight:600;color:var(--text2)">${name}</div>
       <div style="font-size:11px;color:var(--text3);margin-top:2px">No data yet</div>
     </div>`;
@@ -1240,7 +1313,7 @@ function renderRecords(){
     const repLabel=best.plusReps?`2×5 + ${best.plusReps}`:`× ${best.reps||5}`;
     const level=getStrengthLevel(name,best.weight,lastBW);
     const levelColor=getLevelColor(level);
-    return`<div style="padding:14px 16px;border-bottom:${idx<2?'1px solid var(--border)':'none'};display:flex;align-items:center;gap:12px">
+    return`<div style="padding:14px 16px;${divider}display:flex;align-items:center;gap:12px">
       <div style="width:3px;height:56px;background:var(--accent);border-radius:2px;flex-shrink:0"></div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.1px">${name}</div>
@@ -1709,14 +1782,43 @@ const SUBS={
   'Rear Delt Pec Deck':['Cable Rear Delt Fly'],
   'Straight Arm Pulldown':['Cable Row'],
   'Cable Row':['Straight Arm Pulldown'],
-  'Barbell Incline Press':['Smith Incline Press','Chest Press (Vertical)'],
-  'Smith Incline Press':['Barbell Incline Press','Chest Press (Vertical)'],
-  'Chest Press (Vertical)':['Smith Incline Press','Barbell Incline Press'],
+  'Barbell Incline Press':['Smith Incline Press','Vertical Chest Press'],
+  'Smith Incline Press':['Barbell Incline Press','Vertical Chest Press'],
+  'Vertical Chest Press':['Smith Incline Press','Barbell Incline Press'],
   'Bulgarian Split Squat':['Leg Press'],
   'Leg Press':['Bulgarian Split Squat'],
   'Cable Crunch':['Heavy Suitcase Carry (30m)'],
   'Heavy Suitcase Carry (30m)':['Cable Crunch'],
+  'Conventional Deadlift':['Sumo Deadlift'],
+  'Sumo Deadlift':['Conventional Deadlift'],
 };
+
+function openAddExSheet(){
+  const prog=PROG.find(d=>d.day===S.activeDay);
+  const progNames=new Set(prog?prog.exercises.map(e=>e.name):[]);
+  const adhocSet=new Set(S.adhoc||[]);
+  const available=ALL_EX.filter(n=>!progNames.has(n)&&!adhocSet.has(n));
+  const list=document.getElementById('addExList');
+  list.innerHTML=available.map(n=>{
+    const nm=n.replace(/'/g,"\\'");
+    return`<button onclick="addExToSession('${nm}')" style="width:100%;text-align:left;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:11px 14px;cursor:pointer">${n}</button>`;
+  }).join('');
+  document.getElementById('addExOverlay').classList.add('open');
+}
+function closeAddExSheet(){
+  document.getElementById('addExOverlay').classList.remove('open');
+}
+function addExToSession(name){
+  S.adhoc=S.adhoc||[];
+  if(!S.adhoc.includes(name))S.adhoc.push(name);
+  closeAddExSheet();
+  save();renderWorkout();
+}
+function undoAddEx(name){
+  S.adhoc=(S.adhoc||[]).filter(n=>n!==name);
+  delete S.cur[name];
+  save();renderWorkout();
+}
 
 function attachLongPress(el,name,sets,dr,ds){
   el.addEventListener('click',e=>{
